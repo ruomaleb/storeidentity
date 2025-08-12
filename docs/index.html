@@ -86,8 +86,12 @@
       </div>
       <div style="grid-column:1/-1">
         <label for="webhook">URL du webhook n8n (POST JSON)</label>
-        <input id="webhook" placeholder="https://votre-n8n.tld/webhook/store-profile" />
-        <div class="help">Le domaine de cette page doit autoriser les requêtes depuis votre origine (CORS). Assurez-vous que le serveur n8n renvoie des en-têtes <code>Access-Control-Allow-Origin</code> et <code>Access-Control-Allow-Headers: content-type</code> pour <code>https://ruomaleb.github.io</code> (ou votre domaine).</div>
+        <input id="webhook" placeholder="https://votre-n8n.tld/webhook/store-profile" value="https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2" />
+        $1
+        <div class="row" style="margin-top:6px">
+          <button class="btn" id="btn-gen-secret" type="button">Générer un secret</button>
+          <span class="help">Construit une URL du type <code>…/webhook/store-profile/&lt;secret&gt;</code>. En prod, remplacez <code>/webhook-test/</code> par <code>/webhook/</code> une fois votre workflow activé.</span>
+        </div>
       </div>
       <div id="errors" class="help err" style="margin-top:8px;display:none"></div>
       <div class="row" style="margin-top:12px">
@@ -126,13 +130,44 @@
     let lastPayloadStr = null; // JSON sérialisé
     let lastPayloadObj = null; // Objet JSON
 
-    function uuidv4(){
-      // Générateur simple de UUID v4 (suffisant pour un POC)
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-        const r = Math.random()*16|0, v = c === 'x' ? r : (r & 0x3 | 0x8)
-        return v.toString(16)
-      })
+    $1
+    const DEFAULT_WEBHOOK = 'https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2';
+
+    function randomHex(len=32){
+      const out = new Uint8Array(len/2)
+      if(window.crypto && window.crypto.getRandomValues){
+        window.crypto.getRandomValues(out)
+      } else {
+        for(let i=0;i<out.length;i++) out[i] = Math.floor(Math.random()*256)
+      }
+      return Array.from(out, b => b.toString(16).padStart(2,'0')).join('')
     }
+
+    function generateWebhookSecret(){
+      const input = $('#webhook'); if(!input) return;
+      let base = (input.value || '').trim();
+      if(!base){
+        base = prompt('Base du webhook n8n (ex: https://n8n.wondermi.agency/webhook/store-profile)', 'https://n8n.wondermi.agency/webhook/store-profile') || ''
+      }
+      base = base.trim().replace(/\/+$/,'')
+      const secret = randomHex(32)
+      const url = base + '/' + secret
+      input.value = url
+      try { localStorage.setItem('webhook_url', url) } catch(e){}
+    }
+
+    // Préremplissage initial + binding du bouton secret
+    ;(function(){
+      const i = $('#webhook')
+      if(i){
+        try{
+          const saved = localStorage.getItem('webhook_url')
+          i.value = saved || i.value || DEFAULT_WEBHOOK
+        }catch(e){ if(!i.value) i.value = DEFAULT_WEBHOOK }
+        const b = document.querySelector('#btn-gen-secret')
+        if(b) b.addEventListener('click', generateWebhookSecret)
+      }
+    })()
 
     function validateInputs(){
       const enseigne = $('#enseigne').value.trim()
@@ -220,6 +255,8 @@
         lastPayloadStr = payloadStr
       }
       try{
+        try{ localStorage.setItem('webhook_url', webhook); } catch(e){}
+
         const resp = await fetch(webhook, {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-source-origin': location.origin },

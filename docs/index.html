@@ -84,11 +84,23 @@
           <div class="help">WGS84 décimal. Doit être compris entre -180 et 180.</div>
         </div>
       </div>
+      <div style="grid-column:1/-1">
+  <label for="webhook">URL du webhook n8n (POST JSON)</label>
+  <input id="webhook" placeholder="https://votre-n8n.tld/webhook/store-profile" />
+  <div class="help">
+    Le domaine de cette page doit autoriser les requêtes depuis votre origine (CORS).
+    Assurez-vous que le serveur n8n renvoie les en-têtes
+    <code>Access-Control-Allow-Origin</code> et
+    <code>Access-Control-Allow-Headers: content-type</code>
+    pour <code>https://ruomaleb.github.io</code> (ou votre domaine).
+  </div>
+</div>
       <div id="errors" class="help err" style="margin-top:8px;display:none"></div>
       <div class="row" style="margin-top:12px">
         <button class="btn primary" id="btn-gen">Valider & générer le JSON</button>
         <button class="btn" id="btn-copy" disabled>Copier</button>
         <button class="btn warn" id="btn-dl" disabled>Télécharger JSON</button>
+        <button class="btn ok" id="btn-post" disabled>Envoyer au webhook n8n</button>
         <span class="help">Le JSON inclut la <strong>provenance</strong> : <code>type</code>=<em>open_web</em>, <code>name</code>=« Site enseigne », <code>url</code>=page magasin, <code>collected_at</code>=ISO 8601.</span>
       </div>
     </section>
@@ -115,7 +127,10 @@
 
   <script>
     const $ = sel => document.querySelector(sel)
+let lastPayloadStr = null; // JSON sérialisé
+let lastPayloadObj = null; // Objet JSON
 
+    
     function uuidv4(){
       // Générateur simple de UUID v4 (suffisant pour un POC)
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -192,6 +207,77 @@
       a.click()
       URL.revokeObjectURL(a.href)
     }
+<script>
+  /* ...votre code existant... */
+
+  function download(filename, text){
+    const blob = new Blob([text], {type: 'application/json'})
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
+  // ⬇⬇⬇ AJOUTEZ TOUT CE BLOC APRÈS download(...) ⬇⬇⬇
+  // Mémorisation du dernier JSON généré (si ce n’est pas déjà présent)
+  let lastPayloadStr = null; // JSON sérialisé
+  let lastPayloadObj = null; // Objet JSON
+
+  // Envoi au webhook n8n
+  async function postToWebhook(){
+    // 1) Récupérer l’URL du webhook
+    const webhookInput = document.querySelector('#webhook')
+    const webhook = (webhookInput?.value || '').trim()
+
+    // 2) Vérifier l’URL
+    if(!/^https?:\/\//i.test(webhook)){
+      alert('URL du webhook n8n invalide')
+      return
+    }
+
+    // 3) Préparer le payload
+    let payloadStr = lastPayloadStr
+    if(!payloadStr){
+      // Si l’utilisateur n’a pas cliqué sur “Valider & générer” juste avant
+      const res = validateInputs()
+      if(!res.ok){
+        alert('Données incomplètes : générez d\'abord un JSON valide.')
+        return
+      }
+      const obj = buildJSON(res.values)
+      payloadStr = JSON.stringify(obj)
+      lastPayloadObj = obj
+      lastPayloadStr = payloadStr
+    }
+
+    // 4) POST vers n8n
+    try{
+      const resp = await fetch(webhook, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-source-origin': location.origin // pratique pour tracer l’origine côté n8n
+        },
+        body: payloadStr,
+        mode: 'cors',
+        credentials: 'omit'
+      })
+
+      // 5) Retour utilisateur (succès/erreur)
+      const txt = await resp.text().catch(()=> '')
+      if(resp.ok){
+        alert('Webhook envoyé ✅')
+      } else {
+        alert(`Échec webhook (${resp.status})\n${txt.slice(0,300)}`)
+      }
+    } catch (e){
+      alert('Erreur de réseau : ' + (e?.message || e))
+    }
+  }
+
+  /* ...votre code existant... */
+</script>
 
     $('#btn-gen').addEventListener('click', () => {
       const res = validateInputs()

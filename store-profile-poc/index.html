@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>POC Profil de Magasin</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    max-width: 800px;
+  }
+  h1 {
+    margin-bottom: 10px;
+  }
+  label {
+    font-weight: bold;
+    display: block;
+    margin-top: 15px;
+  }
+  textarea {
+    width: 100%;
+    height: 120px;
+  }
+  button {
+    margin-top: 15px;
+    padding: 8px 12px;
+  }
+  #output {
+    margin-top: 20px;
+    background: #f4f4f4;
+    padding: 10px;
+    white-space: pre-wrap;
+    border: 1px solid #ccc;
+  }
+</style>
+</head>
+<body>
+<h1>POC Profil de Magasin</h1>
+<p>Ce formulaire vous permet d’entrer les informations des trois axes pour générer un JSON structuré.</p>
+<form id="profileForm">
+  <label for="notoriety">1. Notoriété & Image de marque</label>
+  <textarea id="notoriety" placeholder="Ex : positionnement, notoriété, perception, campagnes nationales..."></textarea>
+
+  <label for="geo">2. Adresse & Contexte géographique</label>
+  <textarea id="geo" placeholder="Ex : zone de chalandise, socio‑démographie, accessibilité, concurrence, territoire culturel..."></textarea>
+
+  <label for="singularities">3. Singularités du magasin</label>
+  <textarea id="singularities" placeholder="Ex : assortiment, services, historique, implication locale, personnel..."></textarea>
+
+  <label for="references">Références ouvertes (liste d’URL, séparées par des virgules)</label>
+  <textarea id="references" placeholder="Ex : pages Wikipedia, Lonely Planet, Routard, mairie, office de tourisme..."></textarea>
+
+  <label for="territory">Territoire culturel</label>
+  <input type="text" id="territory" placeholder="Ex : Pays Basque, Bretagne, Cambrésis" style="width:100%;">
+
+  <label for="attractionArea">Aire d’attraction (INSEE)</label>
+  <input type="text" id="attractionArea" placeholder="Ex : Bayonne (code AAV 01401)" style="width:100%;">
+
+  <button type="button" id="generateBtn">Générer le JSON</button>
+</form>
+
+<h2>Résultat</h2>
+<pre id="output"></pre>
+
+<script>
+function buildProvenancedItem(value) {
+  return {
+    value: value,
+    sources: [],
+    confidence: 1
+  };
+}
+
+function buildSourceList(urls) {
+  return urls.filter(u => u).map(u => ({
+    type: 'open_web',
+    name: new URL(u).hostname,
+    url: u,
+    collected_at: new Date().toISOString(),
+    confidence: 1
+  }));
+}
+
+document.getElementById('generateBtn').addEventListener('click', function() {
+  const notoriety = document.getElementById('notoriety').value.trim();
+  const geo = document.getElementById('geo').value.trim();
+  const singularities = document.getElementById('singularities').value.trim();
+  const refs = document.getElementById('references').value.trim().split(/\s*,\s*/);
+  const territory = document.getElementById('territory').value.trim();
+  const attraction = document.getElementById('attractionArea').value.trim();
+
+  const json = {
+    axes: {
+      notoriete_image: buildProvenancedItem(notoriety),
+      adresse_contexte: buildProvenancedItem(geo),
+      singularites: buildProvenancedItem(singularities)
+    },
+    references_ouvertes: buildSourceList(refs),
+    territoire_culturel: territory ? buildProvenancedItem(territory) : null,
+    aire_attraction: attraction ? buildProvenancedItem(attraction) : null
+  };
+
+  document.getElementById('output').textContent = JSON.stringify(json, null, 2);
+
+  // Create download link
+  const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'store_profile.json';
+  a.textContent = 'Télécharger le JSON';
+  a.style.display = 'block';
+  a.style.marginTop = '10px';
+  const outputEl = document.getElementById('output');
+  outputEl.appendChild(document.createElement('hr'));
+  outputEl.appendChild(a);
+});
+</script>
+</body>
+</html>

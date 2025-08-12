@@ -1,120 +1,218 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>POC Profil de Magasin</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    max-width: 800px;
-  }
-  h1 {
-    margin-bottom: 10px;
-  }
-  label {
-    font-weight: bold;
-    display: block;
-    margin-top: 15px;
-  }
-  textarea {
-    width: 100%;
-    height: 120px;
-  }
-  button {
-    margin-top: 15px;
-    padding: 8px 12px;
-  }
-  #output {
-    margin-top: 20px;
-    background: #f4f4f4;
-    padding: 10px;
-    white-space: pre-wrap;
-    border: 1px solid #ccc;
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profil Magasin — Saisie minimale (UX guidée)</title>
+  <style>
+    :root{
+      --bg:#0b1320;--card:#121a2b;--muted:#7c8aa5;--text:#e6eefc;--accent:#4f8cff;--ok:#10b981;--warn:#f59e0b;--err:#ef4444
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,var(--bg) 0%,#0f172a 100%);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    .container{max-width:980px;margin:0 auto;padding:24px}
+    header{position:sticky;top:0;background:rgba(11,19,32,.85);backdrop-filter:saturate(140%) blur(6px);border-bottom:1px solid #1f2a44}
+    h1{font-size:18px;margin:0 0 4px}
+    .sub{color:#c7d7ff80;font-size:12px;margin:0}
+    section{background:var(--card);border:1px solid #23304d;border-radius:16px;padding:16px;margin-top:16px}
+    .grid{display:grid;gap:12px}
+    .cols-2{grid-template-columns:1fr 1fr}
+    .cols-3{grid-template-columns:1fr 1fr 1fr}
+    label{display:block;font-weight:600;margin-bottom:6px}
+    .help{margin-top:6px;color:#c7d7ff80;font-size:12px}
+    input,textarea,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #2a395c;background:#0e1526;color:#fff;font-size:14px}
+    input:focus,textarea:focus,select:focus{outline:2px solid #365da8;outline-offset:0}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .btn{padding:10px 14px;border-radius:12px;border:1px solid #2a395c;background:#0b1320;color:#fff;cursor:pointer}
+    .btn:hover{border-color:#4b608f}
+    .btn.primary{background:#4169e1;border-color:#4169e1}
+    .btn.ok{background:var(--ok);border-color:var(--ok)}
+    .btn.warn{background:var(--warn);border-color:var(--warn);color:#000}
+    .btn.ghost{background:transparent}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid #223156;background:#132038;border-radius:999px;padding:4px 10px;font-size:12px;color:#cfe0ff}
+    .err{color:#fecaca}
+    pre{background:#0a1120;border:1px solid #1f2a44;border-radius:12px;padding:12px;overflow:auto;max-height:420px}
+    .divider{height:1px;background:#1f2a44;margin:12px 0}
+  </style>
 </head>
 <body>
-<h1>POC Profil de Magasin</h1>
-<p>Ce formulaire vous permet d’entrer les informations des trois axes pour générer un JSON structuré.</p>
-<form id="profileForm">
-  <label for="notoriety">1. Notoriété & Image de marque</label>
-  <textarea id="notoriety" placeholder="Ex : positionnement, notoriété, perception, campagnes nationales..."></textarea>
+  <header>
+    <div class="container" style="padding:12px 24px;">
+      <h1>Profil Magasin — saisie minimale</h1>
+      <p class="sub">Fournissez 5 informations clés. Le JSON généré suit le schéma « valeur + provenance » défini précédemment (axes → adresse_contexte, etc.).</p>
+    </div>
+  </header>
 
-  <label for="geo">2. Adresse & Contexte géographique</label>
-  <textarea id="geo" placeholder="Ex : zone de chalandise, socio‑démographie, accessibilité, concurrence, territoire culturel..."></textarea>
+  <main class="container">
+    <section>
+      <div class="row" style="justify-content:space-between;margin-bottom:8px">
+        <strong>Étape 1 — Saisies indispensables</strong>
+        <span class="pill">Entrées : 5 champs</span>
+      </div>
+      <div class="grid cols-2">
+        <div>
+          <label for="enseigne">Nom de l’enseigne</label>
+          <input id="enseigne" placeholder="Ex : Intersport, E.Leclerc, Feu Vert" maxlength="100" />
+          <div class="help">Utilisé pour <code>enseigne</code> et pour les libellés.</div>
+        </div>
+        <div>
+          <label for="magasin">Nom du magasin</label>
+          <input id="magasin" placeholder="Ex : Intersport Bayonne – Ametzondo" maxlength="120" />
+          <div class="help">Renseigne l’attribut <code>store_name</code> (champ additionnel) et les titres des références.</div>
+        </div>
+        <div class="cols-2" style="grid-column:1/-1;display:grid;gap:12px;grid-template-columns:1fr 1fr">
+          <div>
+            <label for="adresse">Adresse postale du magasin</label>
+            <input id="adresse" placeholder="Numéro, voie, CP Ville — Ex : 12 rue du Stade, 64100 Bayonne" maxlength="200" />
+            <div class="help">Mappe <code>axes.adresse_contexte.adresse_postale.value</code>.</div>
+          </div>
+          <div>
+            <label for="url">Page web du magasin (site de l’enseigne)</label>
+            <input id="url" placeholder="https://www.enseigne.fr/magasins/ville…" />
+            <div class="help">Enregistrée sous <code>axes.adresse_contexte.references_ouvertes[0].url</code> avec <em>page_type</em> : <code>page_magasin_enseigne</code>.</div>
+          </div>
+        </div>
+        <div>
+          <label>Coordonnées GPS — latitude (° décimaux)</label>
+          <input id="lat" type="number" step="any" placeholder="Ex : 43.4929" />
+          <div class="help">WGS84 décimal. Doit être compris entre -90 et 90.</div>
+        </div>
+        <div>
+          <label>Coordonnées GPS — longitude (° décimaux)</label>
+          <input id="lng" type="number" step="any" placeholder="Ex : -1.4748" />
+          <div class="help">WGS84 décimal. Doit être compris entre -180 et 180.</div>
+        </div>
+      </div>
+      <div id="errors" class="help err" style="margin-top:8px;display:none"></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="btn-gen">Valider & générer le JSON</button>
+        <button class="btn" id="btn-copy" disabled>Copier</button>
+        <button class="btn warn" id="btn-dl" disabled>Télécharger JSON</button>
+        <span class="help">Le JSON inclut la <strong>provenance</strong> : <code>type</code>=<em>open_web</em>, <code>name</code>=« Site enseigne », <code>url</code>=page magasin, <code>collected_at</code>=ISO 8601.</span>
+      </div>
+    </section>
 
-  <label for="singularities">3. Singularités du magasin</label>
-  <textarea id="singularities" placeholder="Ex : assortiment, services, historique, implication locale, personnel..."></textarea>
+    <section>
+      <strong>Étape 2 — Prévisualisation</strong>
+      <div class="divider"></div>
+      <pre id="preview">(générez le JSON pour prévisualiser ici)</pre>
+    </section>
 
-  <label for="references">Références ouvertes (liste d’URL, séparées par des virgules)</label>
-  <textarea id="references" placeholder="Ex : pages Wikipedia, Lonely Planet, Routard, mairie, office de tourisme..."></textarea>
+    <section>
+      <strong>Rappel de mappage vers le schéma</strong>
+      <div class="divider"></div>
+      <ul style="margin:0 0 8px 16px;line-height:1.6">
+        <li><code>enseigne</code> ⇐ Nom de l’enseigne</li>
+        <li><code>store_name</code> (champ additionnel, autorisé) ⇐ Nom du magasin</li>
+        <li><code>axes.adresse_contexte.adresse_postale.value</code> ⇐ Adresse postale</li>
+        <li><code>axes.adresse_contexte.coordonnees.latitude.value</code> / <code>longitude.value</code> ⇐ Coordonnées GPS</li>
+        <li><code>axes.adresse_contexte.references_ouvertes[]</code> ⇐ Page web (type : <code>page_magasin_enseigne</code>)</li>
+      </ul>
+      <p class="help">Les autres attributs (AAV, type de zone, notoriété, services, etc.) pourront être complétés ensuite via l’interface étendue ou des connecteurs/API.</p>
+    </section>
+  </main>
 
-  <label for="territory">Territoire culturel</label>
-  <input type="text" id="territory" placeholder="Ex : Pays Basque, Bretagne, Cambrésis" style="width:100%;">
+  <script>
+    const $ = sel => document.querySelector(sel)
 
-  <label for="attractionArea">Aire d’attraction (INSEE)</label>
-  <input type="text" id="attractionArea" placeholder="Ex : Bayonne (code AAV 01401)" style="width:100%;">
+    function uuidv4(){
+      // Générateur simple de UUID v4 (suffisant pour un POC)
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random()*16|0, v = c === 'x' ? r : (r & 0x3 | 0x8)
+        return v.toString(16)
+      })
+    }
 
-  <button type="button" id="generateBtn">Générer le JSON</button>
-</form>
+    function validateInputs(){
+      const enseigne = $('#enseigne').value.trim()
+      const magasin  = $('#magasin').value.trim()
+      const adresse  = $('#adresse').value.trim()
+      const url      = $('#url').value.trim()
+      const lat      = $('#lat').value.trim()
+      const lng      = $('#lng').value.trim()
 
-<h2>Résultat</h2>
-<pre id="output"></pre>
+      const errs = []
+      if(!enseigne) errs.push('• Nom de l\'enseigne requis')
+      if(!magasin) errs.push('• Nom du magasin requis')
+      if(!adresse) errs.push('• Adresse postale requise')
 
-<script>
-function buildProvenancedItem(value) {
-  return {
-    value: value,
-    sources: [],
-    confidence: 1
-  };
-}
+      const latNum = Number(lat)
+      if(lat === '' || Number.isNaN(latNum) || latNum < -90 || latNum > 90) errs.push('• Latitude invalide (–90 à 90)')
 
-function buildSourceList(urls) {
-  return urls.filter(u => u).map(u => ({
-    type: 'open_web',
-    name: new URL(u).hostname,
-    url: u,
-    collected_at: new Date().toISOString(),
-    confidence: 1
-  }));
-}
+      const lngNum = Number(lng)
+      if(lng === '' || Number.isNaN(lngNum) || lngNum < -180 || lngNum > 180) errs.push('• Longitude invalide (–180 à 180)')
 
-document.getElementById('generateBtn').addEventListener('click', function() {
-  const notoriety = document.getElementById('notoriety').value.trim();
-  const geo = document.getElementById('geo').value.trim();
-  const singularities = document.getElementById('singularities').value.trim();
-  const refs = document.getElementById('references').value.trim().split(/\s*,\s*/);
-  const territory = document.getElementById('territory').value.trim();
-  const attraction = document.getElementById('attractionArea').value.trim();
+      const urlOk = /^https?:\/\//i.test(url)
+      if(!url || !urlOk) errs.push('• URL de la page magasin invalide (doit commencer par http/https)')
 
-  const json = {
-    axes: {
-      notoriete_image: buildProvenancedItem(notoriety),
-      adresse_contexte: buildProvenancedItem(geo),
-      singularites: buildProvenancedItem(singularities)
-    },
-    references_ouvertes: buildSourceList(refs),
-    territoire_culturel: territory ? buildProvenancedItem(territory) : null,
-    aire_attraction: attraction ? buildProvenancedItem(attraction) : null
-  };
+      return { ok: errs.length === 0, errs, values: { enseigne, magasin, adresse, url, lat: latNum, lng: lngNum } }
+    }
 
-  document.getElementById('output').textContent = JSON.stringify(json, null, 2);
+    function defaultSource(url){
+      return { type: 'open_web', name: 'Site enseigne', url, collected_at: new Date().toISOString() }
+    }
 
-  // Create download link
-  const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'store_profile.json';
-  a.textContent = 'Télécharger le JSON';
-  a.style.display = 'block';
-  a.style.marginTop = '10px';
-  const outputEl = document.getElementById('output');
-  outputEl.appendChild(document.createElement('hr'));
-  outputEl.appendChild(a);
-});
-</script>
+    function buildJSON(vals){
+      const src = defaultSource(vals.url)
+      const now = new Date().toISOString()
+      return {
+        store_id: uuidv4(),
+        enseigne: vals.enseigne,
+        store_name: vals.magasin, // champ additionnel (le schéma autorise des propriétés additionnelles)
+        last_updated: now,
+        goal: 'hybride',
+        axes: {
+          adresse_contexte: {
+            adresse_postale: { value: vals.adresse, sources: [src] },
+            coordonnees: {
+              latitude:  { value: vals.lat, sources: [src] },
+              longitude: { value: vals.lng, sources: [src] }
+            },
+            references_ouvertes: [
+              {
+                page_type: 'page_magasin_enseigne',
+                title: `${vals.magasin} — ${vals.enseigne}`,
+                language: 'fr',
+                url: vals.url,
+                source: src,
+                collected_at: now
+              }
+            ]
+          }
+        }
+      }
+    }
+
+    function download(filename, text){
+      const blob = new Blob([text], {type: 'application/json'})
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(a.href)
+    }
+
+    $('#btn-gen').addEventListener('click', () => {
+      const res = validateInputs()
+      const $err = $('#errors')
+      if(!res.ok){
+        $err.style.display = 'block'
+        $err.innerText = res.errs.join('\n')
+        $('#preview').textContent = '(corrigez les erreurs puis regénérez)'
+        $('#btn-copy').disabled = true
+        $('#btn-dl').disabled = true
+        return
+      }
+      $err.style.display = 'none'
+      const json = buildJSON(res.values)
+      const pretty = JSON.stringify(json, null, 2)
+      $('#preview').textContent = pretty
+      $('#btn-copy').disabled = false
+      $('#btn-dl').disabled = false
+      $('#btn-dl').onclick = () => download(`store_profile_${res.values.enseigne.replace(/\s+/g,'_')}.json`, pretty)
+      $('#btn-copy').onclick = async () => { try{ await navigator.clipboard.writeText(pretty); alert('JSON copié dans le presse‑papiers') } catch(e){ alert('Copie impossible : permissions navigateur') } }
+    })
+  </script>
 </body>
 </html>

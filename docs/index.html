@@ -87,7 +87,7 @@
       <div style="grid-column:1/-1">
         <label for="webhook">URL du webhook n8n (POST JSON)</label>
         <input id="webhook" placeholder="https://votre-n8n.tld/webhook/store-profile" value="https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2" />
-        $1
+        <div class="help">Le domaine de cette page doit autoriser les requêtes depuis votre origine (CORS). Assurez-vous que le serveur n8n renvoie les en-têtes <code>Access-Control-Allow-Origin</code> et <code>Access-Control-Allow-Headers: content-type</code> pour <code>https://ruomaleb.github.io</code> (ou votre domaine).</div>
         <div class="row" style="margin-top:6px">
           <button class="btn" id="btn-gen-secret" type="button">Générer un secret</button>
           <span class="help">Construit une URL du type <code>…/webhook/store-profile/&lt;secret&gt;</code>. En prod, remplacez <code>/webhook-test/</code> par <code>/webhook/</code> une fois votre workflow activé.</span>
@@ -130,7 +130,14 @@
     let lastPayloadStr = null; // JSON sérialisé
     let lastPayloadObj = null; // Objet JSON
 
-    $1
+    // Générateur simple de UUID v4 (pour store_id)
+    function uuidv4(){
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random()*16|0, v = c === 'x' ? r : (r & 0x3 | 0x8)
+        return v.toString(16)
+      })
+    }
+
     const DEFAULT_WEBHOOK = 'https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2';
 
     function randomHex(len=32){

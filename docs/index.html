@@ -73,15 +73,11 @@
             <div class="help">Enregistrée sous <code>axes.adresse_contexte.references_ouvertes[0].url</code> avec <em>page_type</em> : <code>page_magasin_enseigne</code>.</div>
           </div>
         </div>
-        <div>
-          <label>Coordonnées GPS — latitude (° décimaux)</label>
-          <input id="lat" type="number" step="any" placeholder="Ex : 43.4929" />
-          <div class="help">WGS84 décimal. Doit être compris entre -90 et 90.</div>
+        <div style="grid-column:1/-1">
+          <label for="coords">Coordonnées GPS — latitude, longitude (° décimaux)</label>
+          <input id="coords" placeholder="48.11552771157894, -1.6767288891938714" />
+          <div class="help">Format recommandé : <code>lat, lng</code> (WGS84 décimal). Exemple : <code>48.11552771157894, -1.6767288891938714</code>. Sont aussi acceptés : « lat lng », « lat; lng », ou un collage depuis Google Maps.</div>
         </div>
-        <div>
-          <label>Coordonnées GPS — longitude (° décimaux)</label>
-          <input id="lng" type="number" step="any" placeholder="Ex : -1.4748" />
-          <div class="help">WGS84 décimal. Doit être compris entre -180 et 180.</div>
         </div>
       </div>
       <div style="grid-column:1/-1">
@@ -181,22 +177,37 @@
       const magasin  = $('#magasin').value.trim()
       const adresse  = $('#adresse').value.trim()
       const url      = $('#url').value.trim()
-      const lat      = $('#lat').value.trim()
-      const lng      = $('#lng').value.trim()
+      const coordsRaw = $('#coords').value.trim()
 
       const errs = []
       if(!enseigne) errs.push('• Nom de l\'enseigne requis')
       if(!magasin) errs.push('• Nom du magasin requis')
       if(!adresse) errs.push('• Adresse postale requise')
 
-      const latNum = Number(lat)
-      if(lat === '' || Number.isNaN(latNum) || latNum < -90 || latNum > 90) errs.push('• Latitude invalide (–90 à 90)')
-
-      const lngNum = Number(lng)
-      if(lng === '' || Number.isNaN(lngNum) || lngNum < -180 || lngNum > 180) errs.push('• Longitude invalide (–180 à 180)')
-
-      const urlOk = /^https?:\/\//i.test(url)
+      const urlOk = (url.startsWith('http://') || url.startsWith('https://'))
       if(!url || !urlOk) errs.push('• URL de la page magasin invalide (doit commencer par http/https)')
+
+      // Parsing des coordonnées "lat, lng" (ou variantes)
+      let latNum, lngNum
+      if(!coordsRaw){
+        errs.push('• Coordonnées GPS requises (format : lat, lng)')
+      } else {
+        const trySplit = (s) => {
+          let p = s.split(','); if(p.length===2) return p
+          p = s.split(';'); if(p.length===2) return p
+          p = s.trim().split(' '); p = p.filter(Boolean); if(p.length===2) return p
+          return null
+        }
+        const parts = trySplit(coordsRaw)
+        if(!parts){
+          errs.push('• Coordonnées GPS invalides. Exemple attendu : 48.11552771157894, -1.6767288891938714')
+        } else {
+          latNum = parseFloat((parts[0]||'').replace(',', '.'))
+          lngNum = parseFloat((parts[1]||'').replace(',', '.'))
+          if(Number.isNaN(latNum) || latNum < -90 || latNum > 90) errs.push('• Latitude invalide (–90 à 90)')
+          if(Number.isNaN(lngNum) || lngNum < -180 || lngNum > 180) errs.push('• Longitude invalide (–180 à 180)')
+        }
+      }
 
       return { ok: errs.length === 0, errs, values: { enseigne, magasin, adresse, url, lat: latNum, lng: lngNum } }
     }
@@ -252,36 +263,8 @@
         alert('URL du webhook n8n invalide')
         return
       }
-      let payloadStr = lastPayloadStr
-      if(!payloadStr){
-        const res = validateInputs()
-        if(!res.ok){ alert("Données incomplètes : générez d'abord un JSON valide."); return }
-        const obj = buildJSON(res.values)
-        payloadStr = JSON.stringify(obj)
-        lastPayloadObj = obj
-        lastPayloadStr = payloadStr
-      }
-      try{
-        try{ localStorage.setItem('webhook_url', webhook); } catch(e){}
 
-        const resp = await fetch(webhook, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json', 'x-source-origin': location.origin },
-          body: payloadStr,
-          mode: 'cors',
-          credentials: 'omit'
-        })
-        const txt = await resp.text().catch(()=> '')
-        if(resp.ok){
-          alert('Webhook envoyé ✅')
-        } else {
-          alert(`Échec webhook (${resp.status})
-${txt.slice(0,300)}`)
-        }
-      }catch(e){
-        alert('Erreur de réseau : ' + (e?.message || e))
-      }
-    }
+      // 1) Préparer le payload (JSON string)
 
     $('#btn-gen').addEventListener('click', () => {
       const res = validateInputs()

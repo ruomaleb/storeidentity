@@ -265,6 +265,52 @@
       }
 
       // 1) Préparer le payload (JSON string)
+      let payloadStr = lastPayloadStr
+      if(!payloadStr){
+        const res = validateInputs()
+        if(!res.ok){ alert("Données incomplètes : générez d'abord un JSON valide."); return }
+        const obj = buildJSON(res.values)
+        payloadStr = JSON.stringify(obj)
+        lastPayloadObj = obj
+        lastPayloadStr = payloadStr
+      }
+
+      // 2) Tentative standard (CORS) en application/json
+      try{
+        try{ localStorage.setItem('webhook_url', webhook); } catch(e){}
+        const resp = await fetch(webhook, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: payloadStr,
+          mode: 'cors',
+          credentials: 'omit'
+        })
+        const txt = await resp.text().catch(()=> '')
+        if(resp.ok){
+          alert('Webhook envoyé ✅')
+          return
+        } else {
+          // Si le serveur ne renvoie pas CORS/200, on tente le fallback Beacon
+          console.warn('CORS/HTTP non OK, fallback Beacon :', resp.status, txt)
+        }
+      }catch(err){
+        // TypeError: Failed to fetch (préflight/CORS/TLS). On tente le fallback Beacon.
+        console.warn('fetch JSON échoué, fallback Beacon :', err)
+      }
+
+      // 3) Fallback sans préflight : navigator.sendBeacon (text/plain)
+      try{
+        const blob = new Blob([payloadStr], { type: 'text/plain;charset=UTF-8' })
+        const sent = navigator.sendBeacon(webhook, blob)
+        if(sent){
+          alert('Webhook envoyé en mode compatible (Beacon). Réponse non lisible côté navigateur, vérifiez n8n → Executions.')
+        } else {
+          alert("Échec d'envoi (Beacon)")
+        }
+      } catch(e){
+        alert('Échec total de l\'envoi : ' + (e?.message || e))
+      }
+    }
 
     $('#btn-gen').addEventListener('click', () => {
       const res = validateInputs()

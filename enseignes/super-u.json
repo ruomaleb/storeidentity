@@ -1,0 +1,80 @@
+{
+  "slug": "super-u",
+  "nom": "Super U",
+  "marque_groupe": "Coopérative U (ex Système U)",
+  "formats_rattaches": [
+    "Hyper U",
+    "U Express",
+    "Utile"
+  ],
+  "slogan_signature": "U, Commerçants autrement",
+  "promesse": "Coopérative d’indépendants orientée proximité : prix justes, ancrage local, relation commerçante et engagements responsables.",
+  "positionnement": "Supermarché généraliste de proximité, porté par une coopérative d’adhérents indépendants, valorisant les produits locaux et les démarches responsables.",
+  "territoires_image": [
+    "Proximité & ancrage local",
+    "Coopérative d’indépendants (relation commerçante)",
+    "Prix bas/justes et comparabilité",
+    "Produits locaux & engagements responsables (U Démarches Engagées)",
+    "Simplicité, praticité du quotidien"
+  ],
+  "preuves_recents": [
+    {
+      "intitule": "Campagnes ‘prix bas’ (Hyper U, Super U, U Express)",
+      "url": "https://www.youtube.com/watch?v=r8rpsFL5i60",
+      "source": "Chaîne YouTube Les Magasins U",
+      "date_ref": "2024"
+    },
+    {
+      "intitule": "Communication corporate sur les valeurs (producteurs locaux, responsabilité)",
+      "url": "https://www.magasins-u.com/u-demarches-engagees/des-valeurs-fortes",
+      "source": "Magasins U — Des valeurs fortes",
+      "date_ref": "consulté 2025-08-14"
+    },
+    {
+      "intitule": "Culture d’entreprise et fierté d’enseigne",
+      "url": "https://u-emploi.com/notre-culture-dentreprise",
+      "source": "U Emploi — Culture",
+      "date_ref": "consulté 2025-08-14"
+    }
+  ],
+  "indicateurs_publics": [
+    {
+      "type": "classement",
+      "organisme": "YouGov BrandIndex (France) — Super & Hypermarchés 2025",
+      "url": "https://business.yougov.com/fr/content/51838-france-grocery-store-rankings-2025",
+      "disponibilite": "résultats globaux publiés ; détails par enseigne accessibles via rapport",
+      "commentaire": "Indicateurs d’image perçue (qualité, value, etc.)."
+    },
+    {
+      "type": "part_de_marche_groupe",
+      "organisme": "Kantar (via Linéaires) — P5 2025",
+      "valeur": "12,8% PGC-FLS (groupe Coopérative U, tous formats)",
+      "url": "https://www.lineaires.com/la-distribution/parts-de-marche-cooperative-u-dans-la-lumiere",
+      "commentaire": "Indicateur de puissance commerciale (non une mesure de notoriété)."
+    }
+  ],
+  "perception_synthese": "Super U capitalise sur une image de commerçants de proximité portée par une coopérative d’adhérents. Les communications récentes renforcent l’axe ‘prix bas/justes’ tout en valorisant les engagements locaux et les produits de territoire. L’univers de marque associe simplicité et responsabilité, avec un ton plutôt concret et quotidien.",
+  "references": [
+    {
+      "label": "Coopérative U — Wikipédia",
+      "url": "https://fr.wikipedia.org/wiki/Coop%C3%A9rative_U"
+    },
+    {
+      "label": "Magasins U — Des valeurs fortes",
+      "url": "https://www.magasins-u.com/u-demarches-engagees/des-valeurs-fortes"
+    },
+    {
+      "label": "U Emploi — Culture d’entreprise",
+      "url": "https://u-emploi.com/notre-culture-dentreprise"
+    },
+    {
+      "label": "YouGov — France Rankings Super et Hypermarchés 2025",
+      "url": "https://business.yougov.com/fr/content/51838-france-grocery-store-rankings-2025"
+    },
+    {
+      "label": "Linéaires — PDM Coopérative U P5 2025",
+      "url": "https://www.lineaires.com/la-distribution/parts-de-marche-cooperative-u-dans-la-lumiere"
+    }
+  ],
+  "last_updated": "2025-08-14T14:04:30.812857+00:00"
+}

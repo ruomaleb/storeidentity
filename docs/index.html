@@ -40,43 +40,43 @@
   <header>
     <div class="container" style="padding:12px 24px;">
       <h1>Profil Magasin — saisie minimale</h1>
-      <p class="sub">Fournissez 5 informations clés. Le JSON généré suit le schéma « valeur + provenance » défini précédemment (axes → adresse_contexte, etc.).</p>
+      <p class="sub">Fournissez 5 informations clés. Le JSON généré suit le schéma « valeur + provenance » défini précédemment (axes → adresse_contexte, etc.).</p>
     </div>
   </header>
 
   <main class="container">
     <section>
       <div class="row" style="justify-content:space-between;margin-bottom:8px">
-        <strong>Étape 1 — Saisies indispensables</strong>
-        <span class="pill">Entrées : 5 champs</span>
+        <strong>Étape 1 — Saisies indispensables</strong>
+        <span class="pill">Entrées : 5 champs</span>
       </div>
       <div class="grid cols-2">
         <div>
           <label for="enseigne">Nom de l’enseigne</label>
-          <input id="enseigne" placeholder="Ex : Intersport, E.Leclerc, Feu Vert" maxlength="100" />
+          <input id="enseigne" placeholder="Ex : Intersport, E.Leclerc, Feu Vert" maxlength="100" />
           <div class="help">Utilisé pour <code>enseigne</code> et pour les libellés.</div>
         </div>
         <div>
           <label for="magasin">Nom du magasin</label>
-          <input id="magasin" placeholder="Ex : Intersport Bayonne – Ametzondo" maxlength="120" />
+          <input id="magasin" placeholder="Ex : Intersport Bayonne – Ametzondo" maxlength="120" />
           <div class="help">Renseigne l’attribut <code>store_name</code> (champ additionnel) et les titres des références.</div>
         </div>
         <div class="cols-2" style="grid-column:1/-1;display:grid;gap:12px;grid-template-columns:1fr 1fr">
           <div>
             <label for="adresse">Adresse postale du magasin</label>
-            <input id="adresse" placeholder="Numéro, voie, CP Ville — Ex : 12 rue du Stade, 64100 Bayonne" maxlength="200" />
+            <input id="adresse" placeholder="Numéro, voie, CP Ville — Ex : 12 rue du Stade, 64100 Bayonne" maxlength="200" />
             <div class="help">Mappe <code>axes.adresse_contexte.adresse_postale.value</code>.</div>
           </div>
           <div>
             <label for="url">Page web du magasin (site de l’enseigne)</label>
             <input id="url" placeholder="https://www.enseigne.fr/magasins/ville…" />
-            <div class="help">Enregistrée sous <code>axes.adresse_contexte.references_ouvertes[0].url</code> avec <em>page_type</em> : <code>page_magasin_enseigne</code>.</div>
+            <div class="help">Enregistrée sous <code>axes.adresse_contexte.references_ouvertes[0].url</code> avec <em>page_type</em> : <code>page_magasin_enseigne</code>.</div>
           </div>
         </div>
         <div style="grid-column:1/-1">
           <label for="coords">Coordonnées GPS — latitude, longitude (° décimaux)</label>
           <input id="coords" placeholder="48.11552771157894, -1.6767288891938714" />
-          <div class="help">Format recommandé : <code>lat, lng</code> (WGS84 décimal). Exemple : <code>48.11552771157894, -1.6767288891938714</code>. Sont aussi acceptés : « lat lng », « lat; lng », ou un collage depuis Google Maps.</div>
+          <div class="help">Format recommandé : <code>lat, lng</code> (WGS84 décimal). Exemple : <code>48.11552771157894, -1.6767288891938714</code>. Sont aussi acceptés : « lat lng », « lat; lng », ou un <strong>lien Google Maps</strong> (la page détecte automatiquement <code>@lat,lng</code> ou <code>?q=lat,lng</code>).</div>
         </div>
         </div>
       </div>
@@ -95,12 +95,14 @@
         <button class="btn" id="btn-copy" disabled>Copier</button>
         <button class="btn warn" id="btn-dl" disabled>Télécharger JSON</button>
         <button class="btn ok" id="btn-post" disabled>Envoyer au webhook n8n</button>
-        <span class="help">Le JSON inclut la <strong>provenance</strong> : <code>type</code>=<em>open_web</em>, <code>name</code>=« Site enseigne », <code>url</code>=page magasin, <code>collected_at</code>=ISO 8601.</span>
+        <span class="help">Le JSON inclut la <strong>provenance</strong> : <code>type</code>=<em>open_web</em>, <code>name</code>=« Site enseigne », <code>url</code>=page magasin, <code>collected_at</code>=ISO 8601.</span>
       </div>
+      <div id="status" class="help" style="margin-top:8px;display:none"></div>
+      <div id="results" class="help" style="margin-top:6px;display:none"></div>
     </section>
 
     <section>
-      <strong>Étape 2 — Prévisualisation</strong>
+      <strong>Étape 2 — Prévisualisation</strong>
       <div class="divider"></div>
       <pre id="preview">(générez le JSON pour prévisualiser ici)</pre>
     </section>
@@ -109,11 +111,11 @@
       <strong>Rappel de mappage vers le schéma</strong>
       <div class="divider"></div>
       <ul style="margin:0 0 8px 16px;line-height:1.6">
-        <li><code>enseigne</code> ⇐ Nom de l’enseigne</li>
-        <li><code>store_name</code> (champ additionnel, autorisé) ⇐ Nom du magasin</li>
-        <li><code>axes.adresse_contexte.adresse_postale.value</code> ⇐ Adresse postale</li>
-        <li><code>axes.adresse_contexte.coordonnees.latitude.value</code> / <code>longitude.value</code> ⇐ Coordonnées GPS</li>
-        <li><code>axes.adresse_contexte.references_ouvertes[]</code> ⇐ Page web (type : <code>page_magasin_enseigne</code>)</li>
+        <li><code>enseigne</code> ⇐ Nom de l’enseigne</li>
+        <li><code>store_name</code> (champ additionnel, autorisé) ⇐ Nom du magasin</li>
+        <li><code>axes.adresse_contexte.adresse_postale.value</code> ⇐ Adresse postale</li>
+        <li><code>axes.adresse_contexte.coordonnees.latitude.value</code> / <code>longitude.value</code> ⇐ Coordonnées GPS</li>
+        <li><code>axes.adresse_contexte.references_ouvertes[]</code> ⇐ Page web (type : <code>page_magasin_enseigne</code>)</li>
       </ul>
       <p class="help">Les autres attributs (AAV, type de zone, notoriété, services, etc.) pourront être complétés ensuite via l’interface étendue ou des connecteurs/API.</p>
     </section>
@@ -172,6 +174,34 @@
       }
     })()
 
+    // Parse coordonnées: accepte texte simple ou URL Google Maps
+    function parseCoordinates(raw){
+      if(!raw) return null;
+      const s = String(raw).trim();
+      if(/https?:\/\//i.test(s)){
+        let m = s.match(/@\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+        if(m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+        m = s.match(/[?&]q=\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/i);
+        if(m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+        m = s.match(/[?&]ll=\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/i);
+        if(m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+      }
+      const trySplit = (t) => {
+        let p = t.split(','); if(p.length===2) return p;
+        p = t.split(';'); if(p.length===2) return p;
+        p = t.trim().split(/\s+/); if(p.length===2) return p;
+        return null;
+      };
+      const parts = trySplit(s);
+      if(!parts) return null;
+      const lat = parseFloat(String(parts[0]).replace(',', '.'));
+      const lng = parseFloat(String(parts[1]).replace(',', '.'));
+      if(Number.isNaN(lat) || Number.isNaN(lng)) return null;
+      if(lat < -90 || lat > 90) return null;
+      if(lng < -180 || lng > 180) return null;
+      return { lat, lng };
+    }
+
     function validateInputs(){
       const enseigne = $('#enseigne').value.trim()
       const magasin  = $('#magasin').value.trim()
@@ -187,29 +217,12 @@
       const urlOk = (url.startsWith('http://') || url.startsWith('https://'))
       if(!url || !urlOk) errs.push('• URL de la page magasin invalide (doit commencer par http/https)')
 
-      // Parsing des coordonnées "lat, lng" (ou variantes)
-      let latNum, lngNum
-      if(!coordsRaw){
-        errs.push('• Coordonnées GPS requises (format : lat, lng)')
-      } else {
-        const trySplit = (s) => {
-          let p = s.split(','); if(p.length===2) return p
-          p = s.split(';'); if(p.length===2) return p
-          p = s.trim().split(' '); p = p.filter(Boolean); if(p.length===2) return p
-          return null
-        }
-        const parts = trySplit(coordsRaw)
-        if(!parts){
-          errs.push('• Coordonnées GPS invalides. Exemple attendu : 48.11552771157894, -1.6767288891938714')
-        } else {
-          latNum = parseFloat((parts[0]||'').replace(',', '.'))
-          lngNum = parseFloat((parts[1]||'').replace(',', '.'))
-          if(Number.isNaN(latNum) || latNum < -90 || latNum > 90) errs.push('• Latitude invalide (–90 à 90)')
-          if(Number.isNaN(lngNum) || lngNum < -180 || lngNum > 180) errs.push('• Longitude invalide (–180 à 180)')
-        }
+      const parsed = parseCoordinates(coordsRaw)
+      if(!parsed){
+        errs.push('• Coordonnées GPS invalides. Exemple : 48.11552771157894, -1.6767288891938714 ou un lien Google Maps contenant @lat,lng')
       }
 
-      return { ok: errs.length === 0, errs, values: { enseigne, magasin, adresse, url, lat: latNum, lng: lngNum } }
+      return { ok: errs.length === 0, errs, values: { enseigne, magasin, adresse, url, lat: parsed?.lat, lng: parsed?.lng } }
     }
 
     function defaultSource(url){
@@ -222,7 +235,7 @@
       return {
         store_id: uuidv4(),
         enseigne: vals.enseigne,
-        store_name: vals.magasin, // champ additionnel (le schéma autorise des propriétés additionnelles)
+        store_name: vals.magasin, // champ additionnel
         last_updated: now,
         goal: 'hybride',
         axes: {
@@ -256,9 +269,25 @@
       URL.revokeObjectURL(a.href)
     }
 
+    // Helpers de statut visuel + résultats
+    function setStatus(msg, type='info'){
+      const el = document.querySelector('#status');
+      if(!el) return;
+      el.style.display = 'block';
+      el.textContent = msg;
+      el.style.color = (type==='ok') ? '#a7f3d0' : (type==='err' ? '#fecaca' : '#c7d7ff');
+    }
+    function showResults(html){
+      const el = document.querySelector('#results');
+      if(!el) return;
+      el.style.display = 'block';
+      el.innerHTML = html;
+    }
+
     // Envoi du JSON au webhook n8n
     async function postToWebhook(){
-      const webhook = ($('#webhook')?.value || '').trim()
+      const rawWh = ($('#webhook')?.value || '').trim();
+      const webhook = rawWh.replace(/\s+/g,'').replace(/\/+$/,''); // trim + supprime slash final
       if(!/^https?:\/\//i.test(webhook)){
         alert('URL du webhook n8n invalide')
         return
@@ -275,9 +304,15 @@
         lastPayloadStr = payloadStr
       }
 
+      const btnPost = document.querySelector('#btn-post');
+      const btnGen  = document.querySelector('#btn-gen');
+      try{ localStorage.setItem('webhook_url', webhook); } catch(e){}
+
       // 2) Tentative standard (CORS) en application/json
       try{
-        try{ localStorage.setItem('webhook_url', webhook); } catch(e){}
+        btnPost && (btnPost.disabled = true);
+        btnGen && (btnGen.disabled = true);
+        setStatus('Envoi en cours… (fetch JSON)', 'info');
         const resp = await fetch(webhook, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -287,27 +322,42 @@
         })
         const txt = await resp.text().catch(()=> '')
         if(resp.ok){
-          alert('Webhook envoyé ✅')
+          setStatus('Webhook envoyé ✅ (fetch JSON)', 'ok');
+          // Essayer d'afficher des liens si le workflow renvoie des URLs
+          try{
+            const data = JSON.parse(txt);
+            const gh = data.github_url || (data.md_path ? `https://github.com/ruomaleb/storeidentity/blob/main/${data.md_path}` : null);
+            const ghJson = data.raw_url || (data.json_path ? `https://github.com/ruomaleb/storeidentity/blob/main/${data.json_path}` : null);
+            let html = '';
+            if(gh) html += `• Résultat Markdown : <a href="${gh}" target="_blank" rel="noopener">ouvrir sur GitHub</a><br>`;
+            if(ghJson) html += `• JSON source : <a href="${ghJson}" target="_blank" rel="noopener">ouvrir sur GitHub</a>`;
+            if(html) showResults(html);
+          }catch(e){ /* réponse non-JSON ou CORS */ }
           return
         } else {
-          // Si le serveur ne renvoie pas CORS/200, on tente le fallback Beacon
           console.warn('CORS/HTTP non OK, fallback Beacon :', resp.status, txt)
         }
       }catch(err){
-        // TypeError: Failed to fetch (préflight/CORS/TLS). On tente le fallback Beacon.
         console.warn('fetch JSON échoué, fallback Beacon :', err)
+      } finally {
+        btnPost && (btnPost.disabled = false);
+        btnGen && (btnGen.disabled = false);
       }
 
       // 3) Fallback sans préflight : navigator.sendBeacon (text/plain)
       try{
+        setStatus('Envoi en cours… (fallback Beacon)', 'info');
         const blob = new Blob([payloadStr], { type: 'text/plain;charset=UTF-8' })
         const sent = navigator.sendBeacon(webhook, blob)
         if(sent){
+          setStatus('Webhook envoyé ✅ (Beacon). Vérifiez n8n → Executions.', 'ok');
           alert('Webhook envoyé en mode compatible (Beacon). Réponse non lisible côté navigateur, vérifiez n8n → Executions.')
         } else {
+          setStatus("Échec d'envoi (Beacon)", 'err');
           alert("Échec d'envoi (Beacon)")
         }
       } catch(e){
+        setStatus('Échec total de l\'envoi', 'err');
         alert('Échec total de l\'envoi : ' + (e?.message || e))
       }
     }
@@ -335,8 +385,45 @@
       $('#btn-copy').disabled = false
       $('#btn-dl').disabled = false
       $('#btn-dl').onclick = () => download(`store_profile_${res.values.enseigne.replace(/\s+/g,'_')}.json`, pretty)
-      $('#btn-copy').onclick = async () => { try{ await navigator.clipboard.writeText(pretty); alert('JSON copié dans le presse‑papiers') } catch(e){ alert('Copie impossible : permissions navigateur') } }
+      $('#btn-copy').onclick = async () => { try{ await navigator.clipboard.writeText(pretty); alert('JSON copié dans le presse-papiers') } catch(e){ alert('Copie impossible : permissions navigateur') } }
     })
+
+    // Persistance locale des 5 champs + aides au collage de coordonnées + raccourci clavier
+    ;(function(){
+      const map = [
+        ['#enseigne','si_enseigne'],
+        ['#magasin','si_magasin'],
+        ['#adresse','si_adresse'],
+        ['#url','si_url'],
+        ['#coords','si_coords']
+      ];
+      for(const [sel,key] of map){
+        const el = document.querySelector(sel);
+        if(!el) continue;
+        try{ const v = localStorage.getItem(key); if(v) el.value = v; }catch(e){}
+        el.addEventListener('input', () => { try{ localStorage.setItem(key, el.value || '') }catch(e){} })
+      }
+      const c = document.querySelector('#coords');
+      if(c){
+        c.addEventListener('paste', (ev) => {
+          const txt = (ev.clipboardData || window.clipboardData)?.getData('text') || '';
+          if(/https?:\/\//i.test(txt)){
+            const parsed = parseCoordinates(txt);
+            if(parsed){
+              ev.preventDefault();
+              c.value = `${parsed.lat}, ${parsed.lng}`;
+              try{ localStorage.setItem('si_coords', c.value) }catch(e){}
+            }
+          }
+        });
+      }
+      // Raccourci clavier: Cmd/Ctrl+Enter = générer JSON
+      document.addEventListener('keydown', (e) => {
+        if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+          const btn = document.querySelector('#btn-gen'); if(btn) btn.click();
+        }
+      })
+    })()
   </script>
 </body>
 </html>

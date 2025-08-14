@@ -1,7 +1,135 @@
-enseignes/
-  intersport.json
-  intersport.md
-  e-leclerc.json
-  e-leclerc.md
-  feu-vert.json
-  feu-vert.md
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Espace Enseignes</title>
+<style>
+  :root{--bg:#0b1320;--card:#121a2b;--muted:#7c8aa5;--text:#e6eefc;--accent:#4f8cff}
+  *{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,var(--bg) 0%,#0f172a 100%);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
+  .container{max-width:1080px;margin:0 auto;padding:20px}
+  header{position:sticky;top:0;background:rgba(11,19,32,.85);backdrop-filter:saturate(140%) blur(6px);border-bottom:1px solid #1f2a44}
+  h1{font-size:18px;margin:0} .sub{color:#c7d7ff80;font-size:12px;margin:4px 0 0}
+  section{background:#121a2b;border:1px solid #23304d;border-radius:16px;padding:16px;margin-top:16px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #2a395c;background:#0e1526;color:#fff}
+  .grid{display:grid;gap:12px}
+  .cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .card{background:#0e1526;border:1px solid #23304d;border-radius:14px;padding:12px}
+  .muted{color:#c7d7ff80} a{color:#9cc1ff}
+  pre{background:#0a1120;border:1px solid #1f2a44;border-radius:12px;padding:12px;overflow:auto;max-height:420px}
+</style>
+</head>
+<body>
+<header>
+  <div class="container" style="padding:12px 20px;">
+    <h1>Espace Enseignes</h1>
+    <p class="sub">Consultez les fiches <code>enseignes/&lt;slug&gt;.json</code> et <code>.md</code> du dépôt.</p>
+  </div>
+</header>
+
+<main class="container">
+  <section>
+    <div class="row" style="justify-content:space-between">
+      <strong>Recherche</strong>
+      <span class="muted">repo: ruomaleb/storeidentity@main</span>
+    </div>
+    <div class="grid" style="grid-template-columns:2fr 1fr;margin-top:8px">
+      <div><input id="q" placeholder="Rechercher par nom/slug… (ex: intersport, e-leclerc)"/></div>
+      <div class="row" style="justify-content:flex-end">
+        <button id="btnRefresh">Rafraîchir la liste</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <strong>Liste des enseignes</strong>
+    <div class="grid cards" id="cards" style="margin-top:8px"></div>
+    <div class="muted" id="count" style="margin-top:6px"></div>
+  </section>
+
+  <section id="viewer" style="display:none">
+    <strong id="vTitle">Fiche enseigne</strong>
+    <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:8px">
+      <div>
+        <div class="muted">JSON</div>
+        <div class="muted">Fichier : <a id="jsonLink" target="_blank">ouvrir sur GitHub</a></div>
+        <pre id="jsonView">(chargement…)</pre>
+      </div>
+      <div>
+        <div class="muted">Markdown</div>
+        <div class="muted">Fichier : <a id="mdLink" target="_blank">ouvrir sur GitHub</a></div>
+        <pre id="mdView">(chargement…)</pre>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const OWNER='ruomaleb', REPO='storeidentity', BRANCH='main';
+const RAW = (p)=>`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${p}`;
+const API = (p)=>`https://api.github.com/repos/${OWNER}/${REPO}/contents/${p}?ref=${BRANCH}`;
+const $=s=>document.querySelector(s);
+
+async function listEnseignes(){
+  const r = await fetch(API('enseignes'));
+  if(!r.ok){ $('#cards').innerHTML='<div class="muted">Aucune fiche détectée (dossier vide ?)</div>'; return; }
+  const arr = await r.json();
+  return arr.filter(x=>x.name.endsWith('.json')).map(x=>{
+    const slug = x.name.replace(/\\.json$/,'');
+    return { slug, download_url:x.download_url, html_url:x.html_url }
+  });
+}
+
+async function loadJson(url){
+  const r = await fetch(url); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json();
+}
+async function loadText(path){
+  const r = await fetch(API(path));
+  if(!r.ok) return '(absent)';
+  const data = await r.json();
+  if(!data.download_url) return '(absent)';
+  const rr = await fetch(data.download_url);
+  return await rr.text();
+}
+
+function renderCards(items){
+  const q = ($('#q').value||'').trim().toLowerCase();
+  const list = q ? items.filter(x=>x.slug.includes(q)) : items;
+  $('#cards').innerHTML = list.map(x=>`
+    <div class="card">
+      <div style="font-weight:700">${x.slug}</div>
+      <div class="muted" style="margin:6px 0 10px">enseignes/${x.slug}.json</div>
+      <div class="row">
+        <a href="#" data-slug="${x.slug}" class="open">Ouvrir</a>
+        <a href="https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/enseignes/${x.slug}.json" target="_blank">JSON</a>
+        <a href="https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/enseignes/${x.slug}.md" target="_blank">MD</a>
+      </div>
+    </div>
+  `).join('');
+  $('#count').textContent = `${list.length} fiche(s)`;
+  document.querySelectorAll('a.open').forEach(a=>{
+    a.onclick = async (ev)=>{
+      ev.preventDefault();
+      const slug = a.getAttribute('data-slug');
+      $('#vTitle').textContent = `Fiche enseigne — ${slug}`;
+      const j = await loadJson(RAW(`enseignes/${slug}.json`)).catch(()=> ({}));
+      $('#jsonView').textContent = JSON.stringify(j,null,2);
+      $('#jsonLink').href = `https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/enseignes/${slug}.json`;
+      const md = await loadText(`enseignes/${slug}.md`);
+      $('#mdView').textContent = md;
+      $('#mdLink').href = `https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/enseignes/${slug}.md`;
+      $('#viewer').style.display='block';
+    };
+  });
+}
+
+async function boot(){
+  const items = await listEnseignes().catch(()=>[]);
+  renderCards(items);
+  $('#btnRefresh').onclick = ()=>renderCards(items);
+  $('#q').addEventListener('input', ()=>renderCards(items));
+}
+boot();
+</script>
+</body>
+</html>

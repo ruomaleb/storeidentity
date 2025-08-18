@@ -34,11 +34,11 @@
     .err{color:#fecaca}
     pre{background:#0a1120;border:1px solid #1f2a44;border-radius:12px;padding:12px;overflow:auto;max-height:420px}
     .divider{height:1px;background:#1f2a44;margin:12px 0}
-    /* Au cas où vous utilisiez l'UI Autocomplete native */
-    .pac-container{z-index:9999 !important}
     .card{border:1px solid #2a395c;border-radius:10px;padding:10px;background:#0e1526}
     .link{color:#9ec1ff;text-decoration:none}
     .link:hover{text-decoration:underline}
+    /* pour l'UI de Google si vous repassez à l'Autocomplete natif */
+    .pac-container{z-index:9999 !important}
   </style>
 </head>
 <body>
@@ -56,7 +56,7 @@
         <span class="pill">Entrées : 5 champs</span>
       </div>
 
-      <!-- A) Recherche Google Places (avec CTA) -->
+      <!-- A) Recherche Google Places (CTA + fallback) -->
       <div style="grid-column:1/-1">
         <label for="placeQuery">Magasin (Recherche Google Places)</label>
         <div class="row" style="gap:8px">
@@ -154,17 +154,19 @@
   <script>
     const $ = sel => document.querySelector(sel)
 
-    // ====== Google Places (CTA) ======
+    // ====== Google Places (CTA avec fallback) ======
     let gReady = false;
     let autocompleteService = null;
     let placesService = null;
-    let selectedPlace = null; // place details
+    let sessionToken = null; // pour Autocomplete
+    let selectedPlace = null; // Place Details
 
     function setPlacesStatus(msg, type='info'){
       const el = $('#placesStatus');
       if(!el) return;
       el.textContent = msg;
       el.style.color = type==='ok' ? '#a7f3d0' : (type==='err' ? '#fecaca' : '#c7d7ff');
+      console.log('[Places]', msg);
     }
 
     function renderPredictions(preds){
@@ -184,6 +186,26 @@
         btn.addEventListener('click', ()=> loadPlaceDetails(p.place_id));
         box.appendChild(btn);
       });
+    }
+
+    function renderFallbackResults(results){
+      const box = $('#placesResults');
+      const mk = (r) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.style.display = 'block';
+        btn.style.textAlign = 'left';
+        btn.style.width = '100%';
+        btn.innerHTML = `<strong>${r.name || '—'}</strong><br><span class="help">${r.formatted_address || r.vicinity || ''}</span>`;
+        btn.addEventListener('click', ()=> loadPlaceDetails(r.place_id));
+        return btn;
+      };
+      if(!results || !results.length){
+        box.innerHTML = '<div class="help">Aucun résultat via fallback (FindPlace/TextSearch).</div>';
+        return;
+      }
+      box.innerHTML = '';
+      results.slice(0,8).forEach(r=> box.appendChild(mk(r)));
     }
 
     function renderPlaceSummary(place){
@@ -227,6 +249,7 @@
         'types','international_phone_number','opening_hours.weekday_text'
       ];
       placesService.getDetails({ placeId, fields }, (place, status) => {
+        console.log('[getDetails] status=', status, place);
         if(status !== google.maps.places.PlacesServiceStatus.OK || !place){
           setPlacesStatus('Impossible de récupérer les détails du lieu.', 'err'); return;
         }
@@ -234,6 +257,8 @@
         fillFormFromPlace(place);
         renderPlaceSummary(place);
         setPlacesStatus('Lieu sélectionné ✔︎ (champs préremplis).', 'ok');
+        // nouvelle session token pour prochaines prédictions
+        try{ sessionToken = new google.maps.places.AutocompleteSessionToken(); }catch(_){}
       });
     }
 
@@ -241,14 +266,55 @@
       const q = ($('#placeQuery')?.value || '').trim();
       if(!q){ setPlacesStatus('Saisissez une requête (ex. « Super U Wormhout »).', 'err'); return; }
       if(!gReady || !autocompleteService){ setPlacesStatus('Google Places non prêt.', 'err'); return; }
-      setPlacesStatus('Recherche en cours…');
-      const req = { input: q, componentRestrictions: { country: 'fr' }, types: ['establishment'] };
+      setPlacesStatus('Recherche en cours (Autocomplete)…');
+
+      // (ré)initialiser le token de session pour cette recherche
+      try{ sessionToken = new google.maps.places.AutocompleteSessionToken(); }catch(_){}
+      const req = {
+        input: q,
+        componentRestrictions: { country: 'fr' },
+        types: ['establishment'],
+        sessionToken
+      };
+
       autocompleteService.getPlacePredictions(req, (preds, status) => {
-        if(status !== google.maps.places.PlacesServiceStatus.OK){
-          setPlacesStatus('Aucun résultat (ou quota atteint).', 'err'); renderPredictions([]); return;
+        console.log('[Autocomplete] status=', status, preds);
+        if(status === google.maps.places.PlacesServiceStatus.OK && preds?.length){
+          setPlacesStatus('Résultats prêts — choisissez un lieu.', 'ok');
+          renderPredictions(preds);
+          return;
         }
-        setPlacesStatus('Résultats prêts — choisissez un lieu.', 'ok');
-        renderPredictions(preds || []);
+
+        // Fallback 1 : FindPlaceFromQuery
+        setPlacesStatus('Aucun résultat Autocomplete, tentative FindPlaceFromQuery…');
+        const fReq = {
+          query: q,
+          fields: ['place_id','name','formatted_address','geometry','url','website']
+        };
+        placesService.findPlaceFromQuery(fReq, (res, st) => {
+          console.log('[FindPlaceFromQuery] status=', st, res);
+          if(st === google.maps.places.PlacesServiceStatus.OK && res?.length){
+            setPlacesStatus('Résultats via FindPlaceFromQuery — choisissez un lieu.', 'ok');
+            renderFallbackResults(res);
+            return;
+          }
+
+          // Fallback 2 : TextSearch
+          setPlacesStatus('Tentative TextSearch…');
+          const tReq = { query: q, region: 'fr' };
+          placesService.textSearch(tReq, (tRes, tSt) => {
+            console.log('[TextSearch] status=', tSt, tRes);
+            if(tSt === google.maps.places.PlacesServiceStatus.OK && tRes?.length){
+              setPlacesStatus('Résultats via TextSearch — choisissez un lieu.', 'ok');
+              renderFallbackResults(tRes);
+              return;
+            }
+
+            // Échecs : afficher le code utile au diagnostic
+            setPlacesStatus(`Aucun résultat (status: ${status}/${st}/${tSt}). Vérifier : Places API activée, quotas, restrictions de clé.`, 'err');
+            renderPredictions([]);
+          });
+        });
       });
     }
 
@@ -258,6 +324,7 @@
       $('#placeSummary').style.display = 'none';
       selectedPlace = null;
       setPlacesStatus('Cliquez « Rechercher » pour interroger Google Places.');
+      try{ sessionToken = new google.maps.places.AutocompleteSessionToken(); }catch(_){}
     }
 
     // Appelé par le <script> Google (callback)
@@ -266,9 +333,12 @@
         gReady = true;
         autocompleteService = new google.maps.places.AutocompleteService();
         placesService = new google.maps.places.PlacesService(document.createElement('div'));
+        sessionToken = new google.maps.places.AutocompleteSessionToken();
         setPlacesStatus('Google Places chargé. Lancez une recherche.', 'ok');
+        console.log('[Google] Places ready');
       }catch(e){
         gReady = false;
+        console.error(e);
         setPlacesStatus('Échec du chargement de Google Places.', 'err');
       }
     }
@@ -279,13 +349,16 @@
       $('#btnPlacesSearch')?.addEventListener('click', searchPlaces);
       $('#btnPlacesReset')?.addEventListener('click', resetPlaces);
       $('#btnPlacesPing')?.addEventListener('click', ()=>{
-        if(window.google?.maps?.places){ alert('Google Places est chargé.'); }
-        else { alert('Google Places NON chargé. Vérifiez la clé/API/quotas.'); }
+        if(window.google?.maps?.places){
+          alert('Google Places est chargé.');
+        } else {
+          alert('Google Places NON chargé. Vérifiez la clé/API/quotas.');
+        }
       });
     });
     // ====== /Google Places ======
 
-    // ====== Votre logique existante (JSON / Webhook) ======
+    // ====== JSON / Webhook (inchangé) ======
     let lastPayloadStr = null;
     let lastPayloadObj = null;
 
@@ -493,7 +566,7 @@
     })
   </script>
 
-  <!-- Google Maps JavaScript API + Places (clé fournie) -->
+  <!-- Google Maps JavaScript API + Places -->
   <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCy5VImTf6SPltnHqVetqh5GPCp-o_JmFo&libraries=places&language=fr&region=FR&callback=onGoogleReady"></script>
 </body>
 </html>

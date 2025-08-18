@@ -1,64 +1,78 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Espace Enseignes</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Enseignes — Notoriété & image</title>
 <style>
-  :root{--bg:#0b1320;--card:#121a2b;--muted:#7c8aa5;--text:#e6eefc;--accent:#4f8cff}
-  *{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,var(--bg) 0%,#0f172a 100%);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
-  .container{max-width:1080px;margin:0 auto;padding:20px}
-  header{position:sticky;top:0;background:rgba(11,19,32,.85);backdrop-filter:saturate(140%) blur(6px);border-bottom:1px solid #1f2a44}
-  h1{font-size:18px;margin:0} .sub{color:#c7d7ff80;font-size:12px;margin:4px 0 0}
-  section{background:#121a2b;border:1px solid #23304d;border-radius:16px;padding:16px;margin-top:16px}
-  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #2a395c;background:#0e1526;color:#fff}
+  :root{--bg:#fff;--surface:#fff;--surface-alt:#f5f5f7;--text:#1d1d1f;--muted:#6e6e73;--border:#e5e5ea;
+        --accent:#0a84ff;--ok:#34c759;--warn:#ffd60a;--err:#ff3b30}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial}
+  .container{max-width:980px;margin:0 auto;padding:20px}
+  header{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);z-index:10}
+  .hwrap{display:flex;align-items:end;justify-content:space-between;gap:12px;padding:14px 20px}
+  h1{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0}
+  .sub{color:var(--muted);font-size:13px;margin:4px 0 0}
+
+  section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:16px}
   .grid{display:grid;gap:12px}
-  .cards{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .card{background:#0e1526;border:1px solid #23304d;border-radius:14px;padding:12px}
-  .muted{color:#c7d7ff80} a{color:#9cc1ff}
-  pre{background:#0a1120;border:1px solid #1f2a44;border-radius:12px;padding:12px;overflow:auto;max-height:420px}
+  .cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .cols-2{grid-template-columns:1fr 1fr}
+  input{width:100%;padding:12px;border-radius:12px;border:1px solid #d2d2d7;background:#fff}
+  .card{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff}
+  .title{font-weight:600}
+  .muted{color:var(--muted);font-size:13px}
+  .btn{padding:8px 12px;border-radius:10px;border:1px solid #d2d2d7;background:var(--surface-alt);cursor:pointer}
+  .btn:hover{background:#ebebf0}
+  .pill{display:inline-block;padding:3px 8px;border:1px solid var(--border);border-radius:999px;background:#fff;margin-right:6px;font-size:12px}
+  pre{background:var(--surface-alt);border:1px solid var(--border);border-radius:12px;padding:12px;overflow:auto;max-height:420px}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  .divider{height:1px;background:var(--border);margin:8px 0}
 </style>
 </head>
 <body>
 <header>
-  <div class="container" style="padding:12px 20px;">
-    <h1>Espace Enseignes</h1>
-    <p class="sub">Consultez les fiches <code>enseignes/&lt;slug&gt;.json</code> et <code>.md</code> du dépôt.</p>
+  <div class="hwrap container">
+    <div>
+      <h1>Enseignes — Notoriété & image</h1>
+      <p class="sub">Liste des fiches dans <code>/enseignes/*.json</code> et affichage du détail (+ <code>.md</code> si présent).</p>
+    </div>
+    <div class="row">
+      <a class="btn" href="index.html">Saisie</a>
+      <a class="btn" href="viewer.html">Viewer</a>
+    </div>
   </div>
 </header>
 
 <main class="container">
   <section>
-    <div class="row" style="justify-content:space-between">
-      <strong>Recherche</strong>
-      <span class="muted">repo: ruomaleb/storeidentity@main</span>
-    </div>
-    <div class="grid" style="grid-template-columns:2fr 1fr;margin-top:8px">
-      <div><input id="q" placeholder="Rechercher par nom/slug… (ex: intersport, e-leclerc)"/></div>
-      <div class="row" style="justify-content:flex-end">
-        <button id="btnRefresh">Rafraîchir la liste</button>
+    <div class="grid cols-2" style="align-items:end">
+      <div>
+        <div class="title">Filtrer</div>
+        <input id="q" placeholder="Rechercher une enseigne…" />
+        <div class="muted" style="margin-top:6px">Tapez au moins 2 caractères.</div>
       </div>
+      <div class="muted" style="text-align:right" id="count">–</div>
     </div>
+    <div id="cards" class="grid cols-3" style="margin-top:12px"></div>
   </section>
 
-  <section>
-    <strong>Liste des enseignes</strong>
-    <div class="grid cards" id="cards" style="margin-top:8px"></div>
-    <div class="muted" id="count" style="margin-top:6px"></div>
-  </section>
-
-  <section id="viewer" style="display:none">
-    <strong id="vTitle">Fiche enseigne</strong>
-    <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:8px">
+  <section id="detail" style="display:none">
+    <div class="grid cols-2">
       <div>
-        <div class="muted">JSON</div>
-        <div class="muted">Fichier : <a id="jsonLink" target="_blank">ouvrir sur GitHub</a></div>
-        <pre id="jsonView">(chargement…)</pre>
+        <div class="title" id="d_name">—</div>
+        <div class="muted" id="d_group" style="margin-top:4px"></div>
+        <div style="margin-top:8px" id="d_chips"></div>
+        <div class="divider"></div>
+        <div class="muted" id="d_positionnement"></div>
+        <div class="divider"></div>
+        <div id="d_refs"></div>
       </div>
       <div>
-        <div class="muted">Markdown</div>
-        <div class="muted">Fichier : <a id="mdLink" target="_blank">ouvrir sur GitHub</a></div>
-        <pre id="mdView">(chargement…)</pre>
+        <div class="title">Fichier .md (synthèse)</div>
+        <div class="muted">Source : <a id="mdLink" target="_blank" rel="noopener">ouvrir sur GitHub</a></div>
+        <div class="divider"></div>
+        <pre id="mdView">(aucun .md pour cette enseigne)</pre>
       </div>
     </div>
   </section>
@@ -66,70 +80,112 @@
 
 <script>
 const OWNER='ruomaleb', REPO='storeidentity', BRANCH='main';
-const RAW = (p)=>`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${p}`;
 const API = (p)=>`https://api.github.com/repos/${OWNER}/${REPO}/contents/${p}?ref=${BRANCH}`;
+const RAW = (p)=>`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${p}`;
 const $=s=>document.querySelector(s);
 
 async function listEnseignes(){
   const r = await fetch(API('enseignes'));
-  if(!r.ok){ $('#cards').innerHTML='<div class="muted">Aucune fiche détectée (dossier vide ?)</div>'; return; }
+  if(!r.ok) throw new Error('GitHub API '+r.status);
   const arr = await r.json();
-  return arr.filter(x=>x.name.endsWith('.json')).map(x=>{
-    const slug = x.name.replace(/\\.json$/,'');
-    return { slug, download_url:x.download_url, html_url:x.html_url }
-  });
+  return arr.filter(x=>x.name.endsWith('.json')).map(x=>x.download_url);
+}
+async function loadJson(url){
+  const r = await fetch(url); if(!r.ok) throw new Error('GET json '+r.status);
+  return await r.json();
+}
+async function loadMd(slug){
+  const raw = RAW(`enseignes/${slug}.md`);
+  const r = await fetch(raw);
+  if(r.ok) return await r.text();
+  // fallback via contents API (si repo branch protégé)
+  const rr = await fetch(API(`enseignes/${slug}.md`));
+  if(!rr.ok) return null;
+  const d = await rr.json();
+  if(d && d.download_url){ const r3 = await fetch(d.download_url); return await r3.text(); }
+  return null;
 }
 
-async function loadJson(url){
-  const r = await fetch(url); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json();
-}
-async function loadText(path){
-  const r = await fetch(API(path));
-  if(!r.ok) return '(absent)';
-  const data = await r.json();
-  if(!data.download_url) return '(absent)';
-  const rr = await fetch(data.download_url);
-  return await rr.text();
-}
+function chip(txt){ const s=document.createElement('span'); s.className='pill'; s.textContent=txt; return s; }
 
 function renderCards(items){
-  const q = ($('#q').value||'').trim().toLowerCase();
-  const list = q ? items.filter(x=>x.slug.includes(q)) : items;
-  $('#cards').innerHTML = list.map(x=>`
-    <div class="card">
-      <div style="font-weight:700">${x.slug}</div>
-      <div class="muted" style="margin:6px 0 10px">enseignes/${x.slug}.json</div>
-      <div class="row">
-        <a href="#" data-slug="${x.slug}" class="open">Ouvrir</a>
-        <a href="https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/enseignes/${x.slug}.json" target="_blank">JSON</a>
-        <a href="https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/enseignes/${x.slug}.md" target="_blank">MD</a>
-      </div>
-    </div>
-  `).join('');
-  $('#count').textContent = `${list.length} fiche(s)`;
-  document.querySelectorAll('a.open').forEach(a=>{
-    a.onclick = async (ev)=>{
-      ev.preventDefault();
-      const slug = a.getAttribute('data-slug');
-      $('#vTitle').textContent = `Fiche enseigne — ${slug}`;
-      const j = await loadJson(RAW(`enseignes/${slug}.json`)).catch(()=> ({}));
-      $('#jsonView').textContent = JSON.stringify(j,null,2);
-      $('#jsonLink').href = `https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/enseignes/${slug}.json`;
-      const md = await loadText(`enseignes/${slug}.md`);
-      $('#mdView').textContent = md;
-      $('#mdLink').href = `https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/enseignes/${slug}.md`;
-      $('#viewer').style.display='block';
-    };
+  const cont = $('#cards'); cont.innerHTML='';
+  const qv = ($('#q').value||'').trim().toLowerCase();
+  const filtered = items.filter(it=>{
+    if(qv.length<2) return true;
+    const hay = `${it.nom||''} ${it.slug||''} ${it.slogan_signature||''} ${it.positionnement||''}`.toLowerCase();
+    return hay.includes(qv);
+  });
+  $('#count').textContent = `${filtered.length} enseigne(s)`;
+  filtered.sort((a,b)=> (a.nom||'').localeCompare(b.nom||'', 'fr', {sensitivity:'base'}));
+  for(const it of filtered){
+    const card = document.createElement('div'); card.className='card';
+    card.innerHTML = `
+      <div class="title">${it.nom||it.slug}</div>
+      <div class="muted" style="margin:4px 0 6px">${it.slogan_signature||''}</div>
+      <div class="muted">${it.positionnement||''}</div>
+      <div style="margin:10px 0" id="chips-${it.slug}"></div>
+      <button class="btn" data-slug="${it.slug}">Voir la fiche</button>
+    `;
+    cont.appendChild(card);
+    const chips = document.getElementById(`chips-${it.slug}`);
+    (it.territoires_image||[]).slice(0,3).forEach(t=> chips.appendChild(chip(t)));
+  }
+  cont.querySelectorAll('button[data-slug]').forEach(btn=>{
+    btn.addEventListener('click', ()=> showDetail(btn.getAttribute('data-slug'), items));
   });
 }
 
-async function boot(){
-  const items = await listEnseignes().catch(()=>[]);
-  renderCards(items);
-  $('#btnRefresh').onclick = ()=>renderCards(items);
-  $('#q').addEventListener('input', ()=>renderCards(items));
+async function showDetail(slug, items){
+  const it = items.find(x=>x.slug===slug); if(!it) return;
+  // Titre / groupe
+  $('#d_name').textContent = it.nom || slug;
+  $('#d_group').textContent = it.marque_groupe || '';
+  // Chips (territoires d'image)
+  const ch = document.getElementById('d_chips'); ch.innerHTML='';
+  (it.territoires_image||[]).forEach(t=> ch.appendChild(chip(t)));
+  // Positionnement
+  $('#d_positionnement').textContent = it.positionnement || '';
+  // Références
+  const refs = document.getElementById('d_refs'); refs.innerHTML = '<div class="title">Références</div>';
+  const ul = document.createElement('ul'); ul.className='muted';
+  (it.references||[]).forEach(r=>{
+    const li = document.createElement('li');
+    const a = document.createElement('a'); a.href = r.url; a.target='_blank'; a.rel='noopener'; a.textContent = r.label || r.url;
+    li.appendChild(a);
+    ul.appendChild(li);
+  });
+  refs.appendChild(ul);
+
+  // Markdown de synthèse
+  const md = await loadMd(slug);
+  const mdView = document.getElementById('mdView');
+  const mdLink = document.getElementById('mdLink');
+  if(md){
+    mdView.textContent = md;
+    mdLink.href = `https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/enseignes/${slug}.md`;
+  }else{
+    mdView.textContent = '(aucun .md pour cette enseigne)';
+    mdLink.href = `https://github.com/${OWNER}/${REPO}/tree/${BRANCH}/enseignes`;
+  }
+
+  document.getElementById('detail').style.display='block';
 }
-boot();
+
+(async function boot(){
+  try{
+    const urls = await listEnseignes();
+    const items = [];
+    for(const u of urls){
+      try{ items.push(await loadJson(u)); }catch(e){}
+    }
+    renderCards(items);
+    document.getElementById('q').addEventListener('input', ()=> renderCards(items));
+  }catch(e){
+    document.getElementById('cards').innerHTML = '<div class="muted">Impossible de charger les enseignes (GitHub API).</div>';
+    console.error(e);
+  }
+})();
 </script>
 </body>
 </html>

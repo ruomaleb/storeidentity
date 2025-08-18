@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Profil Magasin — Saisie avec Enseigne + Google Places</title>
+  <title>Profil Magasin — Enseigne + Google Places</title>
   <style>
     :root{
       --bg:#0b1320;--card:#121a2b;--muted:#7c8aa5;--text:#e6eefc;--accent:#4f8cff;--ok:#10b981;--warn:#f59e0b;--err:#ef4444
@@ -33,15 +33,13 @@
     .err{color:#fecaca}
     pre{background:#0a1120;border:1px solid #1f2a44;border-radius:12px;padding:12px;overflow:auto;max-height:420px}
     .divider{height:1px;background:#1f2a44;margin:12px 0}
-    .skeleton{background:linear-gradient(90deg,#10203a 25%,#0d1a2e 37%,#10203a 63%);background-size:400% 100%;animation:s 1.4s ease infinite;border-radius:8px}
-    @keyframes s{0%{background-position:100% 0}100%{background-position:-100% 0}}
   </style>
 </head>
 <body>
   <header>
     <div class="container" style="padding:12px 24px;">
       <h1>Profil Magasin — enseigne + Google Places</h1>
-      <p class="sub">Sélectionnez une <strong>enseigne</strong>, choisissez le <strong>magasin</strong> via Google Places, et précisez le <strong>type d’opération</strong>. Le JSON est aligné sur le schéma (valeur + provenance).</p>
+      <p class="sub">Sélectionnez une <strong>enseigne</strong>, choisissez le <strong>magasin</strong> via Google Places, et précisez le <strong>type d’opération</strong>. Le JSON suit le schéma (valeur + provenance).</p>
     </div>
   </header>
 
@@ -58,7 +56,7 @@
         <div>
           <label for="enseigneSelect">Enseigne</label>
           <select id="enseigneSelect"></select>
-          <div class="help">Liste alimentée depuis <code>enseignes/*.json</code> du dépôt GitHub.</div>
+          <div class="help">Liste alimentée depuis <code>enseignes/*.json</code> du dépôt.</div>
         </div>
 
         <!-- B) Opération -->
@@ -74,14 +72,17 @@
             <option value="operation_promotionnelle">operation_promotionnelle</option>
             <option value="autre" selected>autre</option>
           </select>
-          <div class="help">Sélectionnez le contexte marketing principal de l’opération.</div>
+          <div class="help">Contexte marketing principal.</div>
         </div>
 
         <!-- C) Recherche Google Places -->
         <div style="grid-column:1/-1">
           <label for="placeSearch">Magasin (Google Places)</label>
-          <input id="placeSearch" placeholder="Tapez le nom et la ville (ex : Super U Wormhout)…" autocomplete="off" />
-          <div class="help">Autocomplete (type <em>establishment</em>, pays : FR). Sélectionnez un résultat pour préremplir le profil.</div>
+          <div class="row" style="gap:6px">
+            <input id="placeSearch" placeholder="Tapez le nom et la ville (ex : Super U Wormhout)…" autocomplete="off" />
+            <button type="button" class="btn" id="resetPlace">Effacer</button>
+          </div>
+          <div class="help">Autocomplete (<em>establishment</em>, pays : FR). Choisissez un résultat pour préremplir le profil.</div>
         </div>
 
         <!-- D) Libellés et dates d’opération -->
@@ -104,7 +105,7 @@
         <div style="grid-column:1/-1">
           <label for="storeName">Nom du magasin (si différent de Google Places)</label>
           <input id="storeName" placeholder="ex : Super U Wormhout (Centre)" />
-          <div class="help">Par défaut, on utilise <code>place.name</code>. Vous pouvez le remplacer ici si besoin.</div>
+          <div class="help">Par défaut : <code>place.name</code>. Modifiez si besoin.</div>
         </div>
       </div>
 
@@ -120,10 +121,10 @@
       <div style="grid-column:1/-1">
         <label for="webhook">URL du webhook n8n (POST JSON)</label>
         <input id="webhook" placeholder="https://votre-n8n.tld/webhook/store-profile" value="https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2" />
-        <div class="help">Votre serveur n8n doit autoriser l’origine (CORS) <code>https://ruomaleb.github.io</code>.</div>
+        <div class="help">Autorisez l’origine CORS : <code>https://ruomaleb.github.io</code>.</div>
         <div class="row" style="margin-top:6px">
           <button class="btn" id="btn-gen-secret" type="button">Générer un secret</button>
-          <span class="help">Construit une URL du type <code>…/webhook/store-profile/&lt;secret&gt;</code>. En prod, utilisez <code>/webhook/</code>.</span>
+          <span class="help">Construit : <code>…/webhook/store-profile/&lt;secret&gt;</code>. En prod : <code>/webhook/</code>.</span>
         </div>
       </div>
 
@@ -151,13 +152,13 @@
       <strong>Rappel de mappage vers le schéma</strong>
       <div class="divider"></div>
       <ul style="margin:0 0 8px 16px;line-height:1.6">
-        <li><code>enseigne</code> ⇐ select enseigne (valeur lisible)</li>
+        <li><code>enseigne</code> ⇐ select enseigne</li>
         <li><code>store_name</code> ⇐ override ou <code>place.name</code></li>
-        <li><code>axes.adresse_contexte.google_places</code> ⇐ détails Places (id, url, website, etc.)</li>
-        <li><code>axes.adresse_contexte.coordonnees</code> ⇐ <code>geometry.location</code></li>
-        <li><code>axes.adresse_contexte.adresse_postale.value</code> ⇐ <code>formatted_address</code></li>
-        <li><code>axes.adresse_contexte.references_ouvertes</code> ⇐ site magasin + lien Google Maps</li>
-        <li><code>operation</code> ⇐ type, label, dates</li>
+        <li><code>axes.adresse_contexte.google_places</code> ⇐ détails Places (id, url, website…)</li>
+        <li><code>coordonnees</code> ⇐ <code>geometry.location</code></li>
+        <li><code>adresse_postale.value</code> ⇐ <code>formatted_address</code></li>
+        <li><code>references_ouvertes</code> ⇐ site magasin + lien Google Maps</li>
+        <li><code>operation</code> ⇐ type, libellé, dates</li>
       </ul>
     </section>
   </main>
@@ -225,7 +226,6 @@
         if(!r.ok){ throw new Error('GitHub API error '+r.status); }
         const arr = await r.json();
         const files = arr.filter(x=>x.name.endsWith('.json'));
-        // Petit fetch de chaque JSON pour récupérer 'nom' et 'slug'
         const out = [];
         for(const f of files){
           try{
@@ -248,47 +248,93 @@
     }
 
     // --- Google Places
-    let autocomplete, placesService;
-    function initPlaces(){
-      const input = $('#placeSearch');
-      if(!input || !window.google || !google.maps?.places) return;
-      autocomplete = new google.maps.places.Autocomplete(input, {
-        types: ['establishment'],
-        componentRestrictions: { country: ['fr'] },
-        fields: ['place_id','name'] // on récupère le minimum, puis Details pour le reste
+    let autocomplete = null, placesService = null;
+
+    function getPlaceDetails(placeId){
+      return new Promise((resolve) => {
+        const fields = [
+          'place_id','name','formatted_address','geometry.location','url','website',
+          'types','international_phone_number','opening_hours.weekday_text'
+        ];
+        placesService.getDetails({ placeId, fields }, (place, status) => {
+          if(status === google.maps.places.PlacesServiceStatus.OK) resolve(place);
+          else resolve(null);
+        });
       });
-      placesService = new google.maps.places.PlacesService(document.createElement('div'));
-      autocomplete.addListener('place_changed', onPlaceChanged);
     }
 
-    function onPlaceChanged(){
-      const p = autocomplete.getPlace();
-      if(!p || !p.place_id){
-        setStatus('Aucun lieu sélectionné.', 'err');
-        return;
-      }
-      // Détails complets
-      const fields = [
-        'place_id','name','formatted_address','geometry.location','url','website',
-        'types','international_phone_number','opening_hours.weekday_text'
-      ];
-      placesService.getDetails({ placeId: p.place_id, fields }, (place, status)=>{
-        if(status !== google.maps.places.PlacesServiceStatus.OK || !place){
-          setStatus('Impossible de récupérer les détails du lieu.', 'err');
-          return;
+    function initPlaces(){
+      const input = document.querySelector('#placeSearch');
+      if(!input || !window.google || !google.maps?.places) return;
+
+      try{
+        const opts = {
+          types: ['establishment'],
+          componentRestrictions: { country: 'fr' }, // ⚠️ string (plus robuste)
+          fields: ['place_id']
+        };
+
+        autocomplete = new google.maps.places.Autocomplete(input, opts);
+        placesService = new google.maps.places.PlacesService(document.createElement('div'));
+
+        // Toujours éditable même si Google grince
+        input.readOnly = false;
+        ['keydown','input','focus'].forEach(ev =>
+          input.addEventListener(ev, () => { input.readOnly = false; }, { passive:true })
+        );
+
+        autocomplete.addListener('place_changed', async () => {
+          const p = autocomplete.getPlace();
+          if(!p || !p.place_id){ setStatus('Aucun lieu sélectionné.', 'err'); return; }
+
+          const details = await getPlaceDetails(p.place_id);
+          if(!details){ setStatus('Impossible de récupérer les détails du lieu.', 'err'); return; }
+
+          lastPlace = details;
+
+          // Pré-remplir le nom magasin override
+          const sn = document.querySelector('#storeName');
+          if(sn && details.name) sn.value = details.name;
+
+          // Afficher résumé
+          renderPlaceSummary(details);
+          setStatus('Lieu sélectionné. Vous pouvez générer le JSON.', 'ok');
+        });
+
+        // Bouton "Effacer"
+        const resetBtn = document.querySelector('#resetPlace');
+        if(resetBtn){
+          resetBtn.addEventListener('click', () => {
+            input.value = '';
+            lastPlace = null;
+            const sum = document.querySelector('#placeSummary');
+            if(sum) sum.style.display = 'none';
+            setStatus('Champ réinitialisé.', 'info');
+            input.focus();
+          });
         }
-        lastPlace = place;
-        // Pré-remplir le nom magasin override
-        const sn = $('#storeName'); if(sn && place.name) sn.value = place.name;
-        renderPlaceSummary(place);
-        setStatus('Lieu sélectionné. Vous pouvez générer le JSON.', 'ok');
-      });
+      }catch(e){
+        console.error('initPlaces error', e);
+        setStatus('Erreur d’initialisation Google Places (voir console).', 'err');
+        // fail-safe : garder l’input utilisable
+        const resetBtn = document.querySelector('#resetPlace');
+        if(resetBtn){
+          resetBtn.addEventListener('click', () => {
+            input.value = '';
+            lastPlace = null;
+            const sum = document.querySelector('#placeSummary');
+            if(sum) sum.style.display = 'none';
+            setStatus('Champ réinitialisé.', 'info');
+            input.focus();
+          });
+        }
+      }
     }
 
     function renderPlaceSummary(place){
       const el = $('#placeSummary'); const body = $('#placeSummaryBody');
       if(!el || !body) return;
-      const lat = place.geometry?.location?.lat?.(); // v3
+      const lat = place.geometry?.location?.lat?.();
       const lng = place.geometry?.location?.lng?.();
       const maps = place.url || (lat!=null && lng!=null ? `https://www.google.com/maps?q=${lat},${lng}` : null);
       const web  = place.website || null;
@@ -312,7 +358,7 @@
       const enseigneSel = $('#enseigneSelect');
       const enseigneSlug = enseigneSel?.value || '';
       const enseigneNom  = (enseignes.find(e=>e.slug===enseigneSlug)?.nom) || enseigneSlug || '';
-      const opType = $('#operationType')?.value || 'autre';
+      const opType  = $('#operationType')?.value || 'autre';
       const opLabel = $('#operationLabel')?.value?.trim() || '';
       const opStart = $('#opStart')?.value || '';
       const opEnd   = $('#opEnd')?.value || '';
@@ -321,7 +367,6 @@
       const errs = [];
       if(!enseigneNom) errs.push('• Enseigne requise (liste vide ou non sélectionnée).');
       if(!lastPlace?.place_id) errs.push('• Sélectionnez un magasin via Google Places.');
-      // Optionnel: dates cohérentes
       if(opStart && opEnd && opEnd < opStart) errs.push('• La date de fin est antérieure à la date de début.');
 
       return {
@@ -350,7 +395,7 @@
 
       const storeName = vals.storeNameOverride || p.name || vals.enseigneNom;
 
-      const json = {
+      return {
         store_id: uuidv4(),
         enseigne: vals.enseigneNom,
         store_name: storeName,
@@ -404,7 +449,6 @@
           }
         }
       };
-      return json;
     }
 
     function download(filename, text){
@@ -518,26 +562,66 @@
       }
     });
 
+    // --- Préremplissage depuis viewer (Dupliquer ce magasin)
+    function applyPrefill(){
+      try{
+        const raw = localStorage.getItem('si_prefill');
+        if(!raw) return;
+        const seed = JSON.parse(raw);
+        // Enseigne
+        if(seed.enseigneSlug && document.querySelector('#enseigneSelect')){
+          const sel = document.querySelector('#enseigneSelect');
+          const trySet = () => {
+            const opt = Array.from(sel.options).find(o=>o.value===seed.enseigneSlug);
+            if(opt) sel.value = seed.enseigneSlug;
+            else setTimeout(trySet, 200);
+          };
+          trySet();
+        }
+        // Nom magasin
+        if(seed.storeName && document.querySelector('#storeName')){
+          document.querySelector('#storeName').value = seed.storeName;
+        }
+        // Simuler un Place Details minimal si fourni
+        const p = seed.place || {};
+        if(p && (p.place_id || (p.latitude!=null && p.longitude!=null))){
+          window.lastPlace = {
+            place_id: p.place_id || null,
+            name: p.name || seed.storeName || '',
+            formatted_address: p.formatted_address || '',
+            website: p.website || '',
+            url: p.url || '',
+            types: p.types || [],
+            international_phone_number: p.phone || null,
+            opening_hours: { weekday_text: p.opening_hours || [] },
+            geometry: { location: { lat: ()=>p.latitude, lng: ()=>p.longitude } }
+          };
+          renderPlaceSummary(window.lastPlace);
+        }
+        localStorage.removeItem('si_prefill');
+        setStatus('Prérempli depuis le viewer. Vérifiez puis « Valider & générer le JSON ».','ok');
+      }catch(e){}
+    }
+
     // --- Boot
     (function boot(){
-      // webhook prérempli + bouton secret
+      // webhook + bouton secret
       const i = $('#webhook');
       if(i){
-        try{
-          const saved = localStorage.getItem('webhook_url');
-          i.value = saved || i.value;
-        }catch(e){}
-        const b = $('#btn-gen-secret');
-        if(b) b.addEventListener('click', generateWebhookSecret);
+        try{ const saved = localStorage.getItem('webhook_url'); if(saved) i.value = saved; }catch(e){}
+        const b = $('#btn-gen-secret'); if(b) b.addEventListener('click', generateWebhookSecret);
       }
       // enseignes
       loadEnseignes();
-      // init Google Places (callback se charge via script async)
-      window.initPlaces = initPlaces;
+      // Google Places callback global
+      window.initPlaces = function(){
+        initPlaces();
+        applyPrefill();
+      };
     })();
   </script>
 
-  <!-- Google Maps JavaScript API + Places (clé restreinte par referrer) -->
-  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCy5VImTf6SPltnHqVetqh5GPCp-o_JmFo&libraries=places&callback=initPlaces"></script>
+  <!-- Google Maps JavaScript API + Places (clé limitée par referrer) -->
+  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCy5VImTf6SPltnHqVetqh5GPCp-o_JmFo&libraries=places&language=fr&region=FR&callback=initPlaces"></script>
 </body>
 </html>

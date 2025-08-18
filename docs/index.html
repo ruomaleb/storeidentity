@@ -3,15 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Profil Magasin — Enseigne + Google Places</title>
+  <title>Profil Magasin — Saisie minimale (UX guidée)</title>
   <style>
     :root{
       --bg:#0b1320;--card:#121a2b;--muted:#7c8aa5;--text:#e6eefc;--accent:#4f8cff;--ok:#10b981;--warn:#f59e0b;--err:#ef4444
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:linear-gradient(180deg,var(--bg) 0%,#0f172a 100%);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
-    a{color:#9cc1ff}
+    body{margin:0;background:linear-gradient(180deg,var(--bg) 0%,#0f172a 100%);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
     .container{max-width:980px;margin:0 auto;padding:24px}
     header{position:sticky;top:0;background:rgba(11,19,32,.85);backdrop-filter:saturate(140%) blur(6px);border-bottom:1px solid #1f2a44}
     h1{font-size:18px;margin:0 0 4px}
@@ -19,6 +18,7 @@
     section{background:var(--card);border:1px solid #23304d;border-radius:16px;padding:16px;margin-top:16px}
     .grid{display:grid;gap:12px}
     .cols-2{grid-template-columns:1fr 1fr}
+    .cols-3{grid-template-columns:1fr 1fr 1fr}
     label{display:block;font-weight:600;margin-bottom:6px}
     .help{margin-top:6px;color:#c7d7ff80;font-size:12px}
     input,textarea,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #2a395c;background:#0e1526;color:#fff;font-size:14px}
@@ -29,599 +29,438 @@
     .btn.primary{background:#4169e1;border-color:#4169e1}
     .btn.ok{background:var(--ok);border-color:var(--ok)}
     .btn.warn{background:var(--warn);border-color:var(--warn);color:#000}
+    .btn.ghost{background:transparent}
     .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid #223156;background:#132038;border-radius:999px;padding:4px 10px;font-size:12px;color:#cfe0ff}
     .err{color:#fecaca}
     pre{background:#0a1120;border:1px solid #1f2a44;border-radius:12px;padding:12px;overflow:auto;max-height:420px}
     .divider{height:1px;background:#1f2a44;margin:12px 0}
+
+    /* Assure la visibilité du menu de suggestions Google */
+    .pac-container { z-index: 10000 !important; }
   </style>
 </head>
 <body>
   <header>
     <div class="container" style="padding:12px 24px;">
-      <h1>Profil Magasin — enseigne + Google Places</h1>
-      <p class="sub">Sélectionnez une <strong>enseigne</strong>, choisissez le <strong>magasin</strong> via Google Places, et précisez le <strong>type d’opération</strong>. Le JSON suit le schéma (valeur + provenance).</p>
+      <h1>Profil Magasin — saisie minimale</h1>
+      <p class="sub">Fournissez 5 informations clés. Le JSON généré suit le schéma « valeur + provenance » défini précédemment (axes → adresse_contexte, etc.).</p>
     </div>
   </header>
 
   <main class="container">
-    <!-- ÉTAPE 1 — Saisie guidée -->
     <section>
       <div class="row" style="justify-content:space-between;margin-bottom:8px">
-        <strong>Étape 1 — Enseigne, Magasin (Google Places), Opération</strong>
-        <span class="pill" id="repoInfo">enseigne : chargement…</span>
+        <strong>Étape 1 — Saisies indispensables</strong>
+        <span class="pill">Entrées : 5 champs</span>
       </div>
 
-      <div class="grid cols-2">
-        <!-- A) Enseigne -->
+      <!-- A) Recherche Google Places (suggestions + auto-remplissage) -->
+      <div style="grid-column:1/-1">
+        <label for="placeSearch">Magasin (Recherche Google Places)</label>
+        <div class="row" style="gap:6px">
+          <input id="placeSearch" placeholder="Tapez le nom et la ville (ex. : Super U Wormhout)..." autocomplete="off" />
+          <button type="button" class="btn" id="resetPlace">Effacer</button>
+        </div>
+        <div id="placesStatus" class="help">Saisissez quelques lettres puis choisissez un résultat.</div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:8px">
         <div>
-          <label for="enseigneSelect">Enseigne</label>
-          <select id="enseigneSelect"></select>
-          <div class="help">Liste alimentée depuis <code>enseignes/*.json</code> du dépôt.</div>
+          <label for="enseigne">Nom de l’enseigne</label>
+          <input id="enseigne" placeholder="Ex : Intersport, E.Leclerc, Feu Vert" maxlength="100" />
+          <div class="help">Utilisé pour <code>enseigne</code> et pour les libellés.</div>
+        </div>
+        <div>
+          <label for="magasin">Nom du magasin</label>
+          <input id="magasin" placeholder="Ex : Intersport Bayonne – Ametzondo" maxlength="120" />
+          <div class="help">Renseigne l’attribut <code>store_name</code> (champ additionnel) et les titres des références.</div>
         </div>
 
-        <!-- B) Opération -->
-        <div>
-          <label for="operationType">Type d’opération</label>
-          <select id="operationType">
-            <option value="ouverture">ouverture</option>
-            <option value="anniversaire">anniversaire</option>
-            <option value="reouverture_travaux">reouverture_travaux</option>
-            <option value="demenagement">demenagement</option>
-            <option value="relooking">relooking</option>
-            <option value="operation_saisonniere">operation_saisonniere</option>
-            <option value="operation_promotionnelle">operation_promotionnelle</option>
-            <option value="autre" selected>autre</option>
-          </select>
-          <div class="help">Contexte marketing principal.</div>
-        </div>
-
-        <!-- C) Recherche Google Places -->
-        <div style="grid-column:1/-1">
-          <label for="placeSearch">Magasin (Google Places)</label>
-          <div class="row" style="gap:6px">
-            <input id="placeSearch" placeholder="Tapez le nom et la ville (ex : Super U Wormhout)…" autocomplete="off" />
-            <button type="button" class="btn" id="resetPlace">Effacer</button>
-          </div>
-          <div class="help">Autocomplete (<em>establishment</em>, pays : FR). Choisissez un résultat pour préremplir le profil.</div>
-        </div>
-
-        <!-- D) Libellés et dates d’opération -->
-        <div>
-          <label for="operationLabel">Libellé libre (ex : « Anniv 5 ans », « Réouverture »)</label>
-          <input id="operationLabel" placeholder="facultatif" />
-        </div>
-        <div class="grid cols-2">
+        <div class="cols-2" style="grid-column:1/-1;display:grid;gap:12px;grid-template-columns:1fr 1fr">
           <div>
-            <label for="opStart">Date début</label>
-            <input id="opStart" type="date" />
+            <label for="adresse">Adresse postale du magasin</label>
+            <input id="adresse" placeholder="Numéro, voie, CP Ville — Ex : 12 rue du Stade, 64100 Bayonne" maxlength="200" />
+            <div class="help">Mappe <code>axes.adresse_contexte.adresse_postale.value</code>.</div>
           </div>
           <div>
-            <label for="opEnd">Date fin</label>
-            <input id="opEnd" type="date" />
+            <label for="url">Page web du magasin (site de l’enseigne)</label>
+            <input id="url" placeholder="https://www.enseigne.fr/magasins/ville…" />
+            <div class="help">Enregistrée sous <code>axes.adresse_contexte.references_ouvertes[0].url</code> avec <em>page_type</em> : <code>page_magasin_enseigne</code>.</div>
           </div>
         </div>
 
-        <!-- E) Nom magasin (override) -->
         <div style="grid-column:1/-1">
-          <label for="storeName">Nom du magasin (si différent de Google Places)</label>
-          <input id="storeName" placeholder="ex : Super U Wormhout (Centre)" />
-          <div class="help">Par défaut : <code>place.name</code>. Modifiez si besoin.</div>
+          <label for="coords">Coordonnées GPS — latitude, longitude (° décimaux)</label>
+          <input id="coords" placeholder="48.11552771157894, -1.6767288891938714" />
+          <div class="help">Format recommandé : <code>lat, lng</code> (WGS84 décimal). Exemple : <code>48.11552771157894, -1.6767288891938714</code>. Sont aussi acceptés : « lat lng », « lat; lng », ou un collage depuis Google Maps.</div>
         </div>
       </div>
 
-      <!-- F) Résumé Google Places -->
       <div class="divider"></div>
-      <div id="placeSummary" style="display:none">
-        <strong>Résumé Google Places</strong>
-        <div id="placeSummaryBody" class="help" style="margin-top:6px"></div>
-      </div>
 
-      <!-- G) Webhook -->
-      <div class="divider"></div>
       <div style="grid-column:1/-1">
         <label for="webhook">URL du webhook n8n (POST JSON)</label>
         <input id="webhook" placeholder="https://votre-n8n.tld/webhook/store-profile" value="https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2" />
-        <div class="help">Autorisez l’origine CORS : <code>https://ruomaleb.github.io</code>.</div>
+        <div class="help">Le domaine de cette page doit autoriser les requêtes depuis votre origine (CORS). Assurez-vous que le serveur n8n renvoie les en-têtes <code>Access-Control-Allow-Origin</code> et <code>Access-Control-Allow-Headers: content-type</code> pour <code>https://ruomaleb.github.io</code> (ou votre domaine).</div>
         <div class="row" style="margin-top:6px">
           <button class="btn" id="btn-gen-secret" type="button">Générer un secret</button>
-          <span class="help">Construit : <code>…/webhook/store-profile/&lt;secret&gt;</code>. En prod : <code>/webhook/</code>.</span>
+          <span class="help">Construit une URL du type <code>…/webhook/store-profile/&lt;secret&gt;</code>. En prod, remplacez <code>/webhook-test/</code> par <code>/webhook/</code> une fois votre workflow activé.</span>
         </div>
       </div>
 
-      <!-- H) Actions -->
       <div id="errors" class="help err" style="margin-top:8px;display:none"></div>
       <div class="row" style="margin-top:12px">
         <button class="btn primary" id="btn-gen">Valider & générer le JSON</button>
         <button class="btn" id="btn-copy" disabled>Copier</button>
         <button class="btn warn" id="btn-dl" disabled>Télécharger JSON</button>
         <button class="btn ok" id="btn-post" disabled>Envoyer au webhook n8n</button>
+        <span class="help">Le JSON inclut la <strong>provenance</strong> : <code>type</code>=<em>open_web</em>, <code>name</code>=« Site enseigne », <code>url</code>=page magasin, <code>collected_at</code>=ISO 8601.</span>
       </div>
-      <div id="status" class="help" style="margin-top:8px;display:none"></div>
-      <div id="results" class="help" style="margin-top:6px;display:none"></div>
     </section>
 
-    <!-- ÉTAPE 2 — Prévisualisation -->
     <section>
       <strong>Étape 2 — Prévisualisation</strong>
       <div class="divider"></div>
       <pre id="preview">(générez le JSON pour prévisualiser ici)</pre>
     </section>
 
-    <!-- Aide schéma -->
     <section>
       <strong>Rappel de mappage vers le schéma</strong>
       <div class="divider"></div>
       <ul style="margin:0 0 8px 16px;line-height:1.6">
-        <li><code>enseigne</code> ⇐ select enseigne</li>
-        <li><code>store_name</code> ⇐ override ou <code>place.name</code></li>
-        <li><code>axes.adresse_contexte.google_places</code> ⇐ détails Places (id, url, website…)</li>
-        <li><code>coordonnees</code> ⇐ <code>geometry.location</code></li>
-        <li><code>adresse_postale.value</code> ⇐ <code>formatted_address</code></li>
-        <li><code>references_ouvertes</code> ⇐ site magasin + lien Google Maps</li>
-        <li><code>operation</code> ⇐ type, libellé, dates</li>
+        <li><code>enseigne</code> ⇐ Nom de l’enseigne</li>
+        <li><code>store_name</code> (champ additionnel, autorisé) ⇐ Nom du magasin</li>
+        <li><code>axes.adresse_contexte.adresse_postale.value</code> ⇐ Adresse postale</li>
+        <li><code>axes.adresse_contexte.coordonnees.latitude.value</code> / <code>longitude.value</code> ⇐ Coordonnées GPS</li>
+        <li><code>axes.adresse_contexte.references_ouvertes[]</code> ⇐ Page web (type : <code>page_magasin_enseigne</code>)</li>
       </ul>
+      <p class="help">Les autres attributs (AAV, type de zone, notoriété, services, etc.) pourront être complétés ensuite via l’interface étendue ou des connecteurs/API.</p>
     </section>
   </main>
 
   <script>
-    const $ = sel => document.querySelector(sel);
+    const $ = sel => document.querySelector(sel)
 
-    // --- Constantes dépôt GitHub (liste des enseignes)
-    const OWNER='ruomaleb', REPO='storeidentity', BRANCH='main';
-    const API = (p)=>`https://api.github.com/repos/${OWNER}/${REPO}/contents/${p}?ref=${BRANCH}`;
-    const RAW = (p)=>`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${p}`;
+    // ===== Google Places — Autocomplete + Details =====
+    let siAutocomplete = null;
+    let siPlacesService = null;
+    let siLastPlace = null;
 
-    // --- Mémoires
-    let lastPayloadStr = null;
-    let lastPayloadObj = null;
-    let lastPlace = null; // Place Details complet
-    let enseignes = [];   // [{slug, nom}]
-
-    // UUID v4 simple
-    function uuidv4(){
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c=>{
-        const r = Math.random()*16|0, v = c==='x'? r : (r&0x3|0x8);
-        return v.toString(16);
-      });
-    }
-
-    // Webhook secret
-    function randomHex(len=32){
-      const out = new Uint8Array(len/2);
-      if(window.crypto?.getRandomValues) window.crypto.getRandomValues(out);
-      else for(let i=0;i<out.length;i++) out[i] = Math.floor(Math.random()*256);
-      return Array.from(out, b=>b.toString(16).padStart(2,'0')).join('');
-    }
-    function generateWebhookSecret(){
-      const input = $('#webhook'); if(!input) return;
-      let base = (input.value || '').trim();
-      if(!base){
-        base = prompt('Base du webhook n8n (ex: https://n8n.wondermi.agency/webhook/store-profile)', 'https://n8n.wondermi.agency/webhook/store-profile') || '';
-      }
-      base = base.trim().replace(/\/+$/,'');
-      const secret = randomHex(32);
-      const url = base + '/' + secret;
-      input.value = url;
-      try { localStorage.setItem('webhook_url', url) } catch(e){}
-    }
-
-    // Status helpers
-    function setStatus(msg,type='info'){
-      const el = $('#status'); if(!el) return;
-      el.style.display='block';
+    function siSetPlacesStatus(msg, type='info'){
+      const el = document.getElementById('placesStatus');
+      if(!el) return;
       el.textContent = msg;
       el.style.color = (type==='ok') ? '#a7f3d0' : (type==='err' ? '#fecaca' : '#c7d7ff');
     }
-    function showResults(html){
-      const el = $('#results'); if(!el) return;
-      el.style.display='block';
-      el.innerHTML = html;
+
+    function siRenderIntoForm(details){
+      // Remplir : magasin, adresse, coords, url (si dispo)
+      const $magasin = document.getElementById('magasin');
+      const $adresse = document.getElementById('adresse');
+      const $coords  = document.getElementById('coords');
+      const $url     = document.getElementById('url');
+
+      if($magasin && details?.name) $magasin.value = details.name;
+      if($adresse && details?.formatted_address) $adresse.value = details.formatted_address;
+
+      const lat = details?.geometry?.location?.lat?.();
+      const lng = details?.geometry?.location?.lng?.();
+      if($coords && lat!=null && lng!=null) $coords.value = `${lat}, ${lng}`;
+
+      if($url && details?.website) $url.value = details.website;
     }
 
-    // --- Chargement des enseignes depuis le dépôt
-    async function loadEnseignes(){
-      try{
-        $('#repoInfo').textContent = `${OWNER}/${REPO}@${BRANCH} — enseignes`;
-        const r = await fetch(API('enseignes'));
-        if(!r.ok){ throw new Error('GitHub API error '+r.status); }
-        const arr = await r.json();
-        const files = arr.filter(x=>x.name.endsWith('.json'));
-        const out = [];
-        for(const f of files){
-          try{
-            const jr = await fetch(f.download_url);
-            if(!jr.ok) continue;
-            const j = await jr.json();
-            const slug = j.slug || f.name.replace(/\.json$/,'');
-            const nom  = j.nom || slug;
-            out.push({slug, nom});
-          }catch(e){}
-        }
-        enseignes = out.sort((a,b)=>a.nom.localeCompare(b.nom,'fr',{sensitivity:'base'}));
-        const sel = $('#enseigneSelect');
-        sel.innerHTML = enseignes.map(e=>`<option value="${e.slug}">${e.nom}</option>`).join('');
-      }catch(e){
-        $('#repoInfo').textContent = 'enseigne : fallback';
-        const sel = $('#enseigneSelect');
-        sel.innerHTML = `<option value="autre">Autre (saisie libre)</option>`;
-      }
-    }
-
-    // --- Google Places
-    let autocomplete = null, placesService = null;
-
-    function getPlaceDetails(placeId){
+    function siGetPlaceDetails(placeId){
       return new Promise((resolve) => {
         const fields = [
           'place_id','name','formatted_address','geometry.location','url','website',
           'types','international_phone_number','opening_hours.weekday_text'
         ];
-        placesService.getDetails({ placeId, fields }, (place, status) => {
+        siPlacesService.getDetails({ placeId, fields }, (place, status) => {
           if(status === google.maps.places.PlacesServiceStatus.OK) resolve(place);
           else resolve(null);
         });
       });
     }
 
-    function initPlaces(){
-      const input = document.querySelector('#placeSearch');
-      if(!input || !window.google || !google.maps?.places) return;
+    function initPlaces(){ // appelée par le callback du script Google
+      const $input = document.getElementById('placeSearch');
+      if(!$input || !window.google || !google.maps?.places){
+        console.warn('Google Places non chargé ou #placeSearch introuvable.');
+        return;
+      }
 
       try{
         const opts = {
           types: ['establishment'],
-          componentRestrictions: { country: 'fr' }, // ⚠️ string (plus robuste)
-          fields: ['place_id']
+          componentRestrictions: { country: 'fr' }, // chaîne, plus robuste
+          fields: ['place_id'] // on récupère l'ID, puis on appelle getDetails
         };
+        siAutocomplete = new google.maps.places.Autocomplete($input, opts);
+        siPlacesService = new google.maps.places.PlacesService(document.createElement('div'));
 
-        autocomplete = new google.maps.places.Autocomplete(input, opts);
-        placesService = new google.maps.places.PlacesService(document.createElement('div'));
-
-        // Toujours éditable même si Google grince
-        input.readOnly = false;
+        // Toujours éditable
         ['keydown','input','focus'].forEach(ev =>
-          input.addEventListener(ev, () => { input.readOnly = false; }, { passive:true })
+          $input.addEventListener(ev, () => { $input.readOnly = false; }, { passive:true })
         );
 
-        autocomplete.addListener('place_changed', async () => {
-          const p = autocomplete.getPlace();
-          if(!p || !p.place_id){ setStatus('Aucun lieu sélectionné.', 'err'); return; }
+        siAutocomplete.addListener('place_changed', async () => {
+          const basic = siAutocomplete.getPlace();
+          if(!basic || !basic.place_id){
+            siSetPlacesStatus('Aucun lieu sélectionné.', 'err');
+            return;
+          }
+          siSetPlacesStatus('Récupération des détails…');
 
-          const details = await getPlaceDetails(p.place_id);
-          if(!details){ setStatus('Impossible de récupérer les détails du lieu.', 'err'); return; }
-
-          lastPlace = details;
-
-          // Pré-remplir le nom magasin override
-          const sn = document.querySelector('#storeName');
-          if(sn && details.name) sn.value = details.name;
-
-          // Afficher résumé
-          renderPlaceSummary(details);
-          setStatus('Lieu sélectionné. Vous pouvez générer le JSON.', 'ok');
+          const details = await siGetPlaceDetails(basic.place_id);
+          if(!details){
+            siSetPlacesStatus('Impossible de récupérer les détails du lieu.', 'err');
+            return;
+          }
+          siLastPlace = details;
+          siRenderIntoForm(details);
+          siSetPlacesStatus('Lieu sélectionné ✔︎ (les champs ont été préremplis).', 'ok');
         });
 
-        // Bouton "Effacer"
-        const resetBtn = document.querySelector('#resetPlace');
-        if(resetBtn){
-          resetBtn.addEventListener('click', () => {
-            input.value = '';
-            lastPlace = null;
-            const sum = document.querySelector('#placeSummary');
-            if(sum) sum.style.display = 'none';
-            setStatus('Champ réinitialisé.', 'info');
-            input.focus();
+        // Bouton Effacer
+        const $reset = document.getElementById('resetPlace');
+        if($reset){
+          $reset.addEventListener('click', () => {
+            $input.value = '';
+            siLastPlace = null;
+            siSetPlacesStatus('Champ réinitialisé. Recherchez à nouveau.', 'info');
+            $input.focus();
           });
         }
+
+        // Message d'état initial
+        siSetPlacesStatus('Saisissez quelques lettres puis choisissez un résultat.');
       }catch(e){
         console.error('initPlaces error', e);
-        setStatus('Erreur d’initialisation Google Places (voir console).', 'err');
-        // fail-safe : garder l’input utilisable
-        const resetBtn = document.querySelector('#resetPlace');
-        if(resetBtn){
-          resetBtn.addEventListener('click', () => {
-            input.value = '';
-            lastPlace = null;
-            const sum = document.querySelector('#placeSummary');
-            if(sum) sum.style.display = 'none';
-            setStatus('Champ réinitialisé.', 'info');
-            input.focus();
-          });
-        }
+        siSetPlacesStatus('Erreur d’initialisation Google Places (voir console).', 'err');
       }
     }
+    // ===== /Google Places =====
 
-    function renderPlaceSummary(place){
-      const el = $('#placeSummary'); const body = $('#placeSummaryBody');
-      if(!el || !body) return;
-      const lat = place.geometry?.location?.lat?.();
-      const lng = place.geometry?.location?.lng?.();
-      const maps = place.url || (lat!=null && lng!=null ? `https://www.google.com/maps?q=${lat},${lng}` : null);
-      const web  = place.website || null;
-      body.innerHTML = `
-        <div><strong>${place.name || '—'}</strong></div>
-        <div>${place.formatted_address || '—'}</div>
-        <div style="margin-top:6px">
-          ${web ? `Site : <a href="${web}" target="_blank" rel="noopener">ouvrir</a> &nbsp;` : ``}
-          ${maps ? `Maps : <a href="${maps}" target="_blank" rel="noopener">ouvrir</a>` : ``}
-        </div>
-        <div class="help" style="margin-top:6px">
-          place_id : <code>${place.place_id}</code> •
-          types : <code>${(place.types||[]).slice(0,4).join(', ')}</code>
-        </div>
-      `;
-      el.style.display = 'block';
+
+    // Mémoire du dernier JSON généré
+    let lastPayloadStr = null; // JSON sérialisé
+    let lastPayloadObj = null; // Objet JSON
+
+    // Générateur simple de UUID v4 (pour store_id)
+    function uuidv4(){
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random()*16|0, v = c === 'x' ? r : (r & 0x3 | 0x8)
+        return v.toString(16)
+      })
     }
 
-    // --- Validation & construction JSON
+    const DEFAULT_WEBHOOK = 'https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2';
+
+    function randomHex(len=32){
+      const out = new Uint8Array(len/2)
+      if(window.crypto && window.crypto.getRandomValues){
+        window.crypto.getRandomValues(out)
+      } else {
+        for(let i=0;i<out.length;i++) out[i] = Math.floor(Math.random()*256)
+      }
+      return Array.from(out, b => b.toString(16).padStart(2,'0')).join('')
+    }
+
+    function generateWebhookSecret(){
+      const input = $('#webhook'); if(!input) return;
+      let base = (input.value || '').trim();
+      if(!base){
+        base = prompt('Base du webhook n8n (ex: https://n8n.wondermi.agency/webhook/store-profile)', 'https://n8n.wondermi.agency/webhook/store-profile') || ''
+      }
+      base = base.trim().replace(/\/+$/,'')
+      const secret = randomHex(32)
+      const url = base + '/' + secret
+      input.value = url
+      try { localStorage.setItem('webhook_url', url) } catch(e){}
+    }
+
+    // Préremplissage initial + binding du bouton secret
+    ;(function(){
+      const i = $('#webhook')
+      if(i){
+        try{
+          const saved = localStorage.getItem('webhook_url')
+          i.value = saved || i.value || DEFAULT_WEBHOOK
+        }catch(e){ if(!i.value) i.value = DEFAULT_WEBHOOK }
+        const b = document.querySelector('#btn-gen-secret')
+        if(b) b.addEventListener('click', generateWebhookSecret)
+      }
+    })()
+
     function validateInputs(){
-      const enseigneSel = $('#enseigneSelect');
-      const enseigneSlug = enseigneSel?.value || '';
-      const enseigneNom  = (enseignes.find(e=>e.slug===enseigneSlug)?.nom) || enseigneSlug || '';
-      const opType  = $('#operationType')?.value || 'autre';
-      const opLabel = $('#operationLabel')?.value?.trim() || '';
-      const opStart = $('#opStart')?.value || '';
-      const opEnd   = $('#opEnd')?.value || '';
-      const storeNameOverride = $('#storeName')?.value?.trim() || '';
+      const enseigne = $('#enseigne').value.trim()
+      const magasin  = $('#magasin').value.trim()
+      const adresse  = $('#adresse').value.trim()
+      const url      = $('#url').value.trim()
+      const coordsRaw = $('#coords').value.trim()
 
-      const errs = [];
-      if(!enseigneNom) errs.push('• Enseigne requise (liste vide ou non sélectionnée).');
-      if(!lastPlace?.place_id) errs.push('• Sélectionnez un magasin via Google Places.');
-      if(opStart && opEnd && opEnd < opStart) errs.push('• La date de fin est antérieure à la date de début.');
+      const errs = []
+      if(!enseigne) errs.push('• Nom de l\'enseigne requis')
+      if(!magasin) errs.push('• Nom du magasin requis')
+      if(!adresse) errs.push('• Adresse postale requise')
 
-      return {
-        ok: errs.length===0,
-        errs,
-        values: { enseigneNom, enseigneSlug, opType, opLabel, opStart, opEnd, storeNameOverride }
-      };
+      const urlOk = (url.startsWith('http://') || url.startsWith('https://'))
+      if(!url || !urlOk) errs.push('• URL de la page magasin invalide (doit commencer par http/https)')
+
+      // Parsing des coordonnées "lat, lng" (ou variantes)
+      let latNum, lngNum
+      if(!coordsRaw){
+        errs.push('• Coordonnées GPS requises (format : lat, lng)')
+      } else {
+        const trySplit = (s) => {
+          let p = s.split(','); if(p.length===2) return p
+          p = s.split(';'); if(p.length===2) return p
+          p = s.trim().split(' '); p = p.filter(Boolean); if(p.length===2) return p
+          return null
+        }
+        const parts = trySplit(coordsRaw)
+        if(!parts){
+          errs.push('• Coordonnées GPS invalides. Exemple attendu : 48.11552771157894, -1.6767288891938714')
+        } else {
+          latNum = parseFloat((parts[0]||'').replace(',', '.'))
+          lngNum = parseFloat((parts[1]||'').replace(',', '.'))
+          if(Number.isNaN(latNum) || latNum < -90 || latNum > 90) errs.push('• Latitude invalide (–90 à 90)')
+          if(Number.isNaN(lngNum) || lngNum < -180 || lngNum > 180) errs.push('• Longitude invalide (–180 à 180)')
+        }
+      }
+
+      return { ok: errs.length === 0, errs, values: { enseigne, magasin, adresse, url, lat: latNum, lng: lngNum } }
     }
 
-    function defaultSource(type='google_places', url=null){
-      const s = { type, collected_at: new Date().toISOString() };
-      if(type==='open_web' && url){ s.name='Site enseigne'; s.url=url; }
-      if(type==='google_places'){ s.name='Places Details'; }
-      return s;
+    function defaultSource(url){
+      return { type: 'open_web', name: 'Site enseigne', url, collected_at: new Date().toISOString() }
     }
 
     function buildJSON(vals){
-      const p = lastPlace || {};
-      const loc = p.geometry?.location;
-      const lat = typeof loc?.lat === 'function' ? loc.lat() : null;
-      const lng = typeof loc?.lng === 'function' ? loc.lng() : null;
-      const now = new Date().toISOString();
-
-      const srcPlaces = defaultSource('google_places');
-      const srcWeb = p.website ? defaultSource('open_web', p.website) : null;
-
-      const storeName = vals.storeNameOverride || p.name || vals.enseigneNom;
-
+      const src = defaultSource(vals.url)
+      const now = new Date().toISOString()
       return {
         store_id: uuidv4(),
-        enseigne: vals.enseigneNom,
-        store_name: storeName,
+        enseigne: vals.enseigne,
+        store_name: vals.magasin, // champ additionnel (le schéma autorise des propriétés additionnelles)
         last_updated: now,
         goal: 'hybride',
-        operation: {
-          type: vals.opType,
-          label_libre: vals.opLabel || undefined,
-          date_debut: vals.opStart || undefined,
-          date_fin: vals.opEnd || undefined
-        },
         axes: {
           adresse_contexte: {
-            google_places: {
-              place_id: p.place_id || null,
-              name: p.name || null,
-              formatted_address: p.formatted_address || null,
-              types: p.types || [],
-              website: p.website || null,
-              google_maps_url: p.url || null,
-              international_phone_number: p.international_phone_number || null,
-              opening_hours: p.opening_hours?.weekday_text || [],
-              sources: [srcPlaces]
-            },
+            adresse_postale: { value: vals.adresse, sources: [src] },
             coordonnees: {
-              latitude:  { value: lat, sources: [srcPlaces] },
-              longitude: { value: lng, sources: [srcPlaces] }
-            },
-            adresse_postale: {
-              value: p.formatted_address || null,
-              sources: [srcPlaces]
+              latitude:  { value: vals.lat, sources: [src] },
+              longitude: { value: vals.lng, sources: [src] }
             },
             references_ouvertes: [
-              ...(p.website ? [{
+              {
                 page_type: 'page_magasin_enseigne',
-                title: `${storeName} — ${vals.enseigneNom}`,
+                title: `${vals.magasin} — ${vals.enseigne}`,
                 language: 'fr',
-                url: p.website,
-                source: srcWeb,
+                url: vals.url,
+                source: src,
                 collected_at: now
-              }] : []),
-              ...(p.url ? [{
-                page_type: 'google_maps',
-                title: 'Fiche Google Maps',
-                language: 'fr',
-                url: p.url,
-                source: srcPlaces,
-                collected_at: now
-              }] : [])
+              }
             ]
           }
         }
-      };
+      }
     }
 
     function download(filename, text){
-      const blob = new Blob([text], {type: 'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(a.href);
+      const blob = new Blob([text], {type: 'application/json'})
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(a.href)
     }
 
-    // --- Envoi Webhook
+    // Envoi du JSON au webhook n8n
     async function postToWebhook(){
-      const rawWh = ($('#webhook')?.value || '').trim();
-      const webhook = rawWh.replace(/\s+/g,'').replace(/\/+$/,'');
+      const webhook = ($('#webhook')?.value || '').trim()
       if(!/^https?:\/\//i.test(webhook)){
-        alert('URL du webhook n8n invalide'); return;
+        alert('URL du webhook n8n invalide')
+        return
       }
 
-      let payloadStr = lastPayloadStr;
+      // 1) Préparer le payload (JSON string)
+      let payloadStr = lastPayloadStr
       if(!payloadStr){
-        const res = validateInputs();
-        if(!res.ok){ alert("Données incomplètes : générez d'abord un JSON valide."); return; }
-        const obj = buildJSON(res.values);
-        payloadStr = JSON.stringify(obj);
-        lastPayloadObj = obj;
-        lastPayloadStr = payloadStr;
+        const res = validateInputs()
+        if(!res.ok){ alert("Données incomplètes : générez d'abord un JSON valide."); return }
+        const obj = buildJSON(res.values)
+        payloadStr = JSON.stringify(obj)
+        lastPayloadObj = obj
+        lastPayloadStr = payloadStr
       }
 
-      const btnPost = $('#btn-post'); const btnGen = $('#btn-gen');
-      try{ localStorage.setItem('webhook_url', webhook); }catch(e){}
-
+      // 2) Tentative standard (CORS) en application/json
       try{
-        btnPost && (btnPost.disabled = true);
-        btnGen && (btnGen.disabled = true);
-        setStatus('Envoi en cours… (fetch JSON)', 'info');
+        try{ localStorage.setItem('webhook_url', webhook); } catch(e){}
         const resp = await fetch(webhook, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: payloadStr,
           mode: 'cors',
           credentials: 'omit'
-        });
-        const txt = await resp.text().catch(()=> '');
+        })
+        const txt = await resp.text().catch(()=> '')
         if(resp.ok){
-          setStatus('Webhook envoyé ✅ (fetch JSON)', 'ok');
-          try{
-            const data = JSON.parse(txt);
-            const vid = data.store_id;
-            let html = '• ';
-            if (vid) html += `<a href="viewer.html?id=${vid}" target="_blank" rel="noopener">Ouvrir dans le viewer</a><br>`;
-            if (data.md_path) html += `• <a href="https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/${data.md_path}" target="_blank">Markdown sur GitHub</a><br>`;
-            if (data.json_path) html += `• <a href="https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/${data.json_path}" target="_blank">JSON sur GitHub</a>`;
-            showResults(html);
-          }catch(e){}
-          return;
+          alert('Webhook envoyé ✅')
+          return
         } else {
-          console.warn('CORS/HTTP non OK, fallback Beacon :', resp.status, txt);
+          // Si le serveur ne renvoie pas CORS/200, on tente le fallback Beacon
+          console.warn('CORS/HTTP non OK, fallback Beacon :', resp.status, txt)
         }
       }catch(err){
-        console.warn('fetch JSON échoué, fallback Beacon :', err);
-      }finally{
-        btnPost && (btnPost.disabled = false);
-        btnGen && (btnGen.disabled = false);
+        // TypeError: Failed to fetch (préflight/CORS/TLS). On tente le fallback Beacon.
+        console.warn('fetch JSON échoué, fallback Beacon :', err)
       }
 
+      // 3) Fallback sans préflight : navigator.sendBeacon (text/plain)
       try{
-        setStatus('Envoi en cours… (fallback Beacon)', 'info');
-        const blob = new Blob([payloadStr], { type: 'text/plain;charset=UTF-8' });
-        const sent = navigator.sendBeacon(webhook, blob);
+        const blob = new Blob([payloadStr], { type: 'text/plain;charset=UTF-8' })
+        const sent = navigator.sendBeacon(webhook, blob)
         if(sent){
-          setStatus('Webhook envoyé ✅ (Beacon). Vérifiez n8n → Executions.', 'ok');
-          alert('Webhook envoyé (Beacon). La réponse n’est pas lisible côté navigateur.');
+          alert('Webhook envoyé en mode compatible (Beacon). Réponse non lisible côté navigateur, vérifiez n8n → Executions.')
         } else {
-          setStatus("Échec d'envoi (Beacon)", 'err');
-          alert("Échec d'envoi (Beacon)");
+          alert("Échec d'envoi (Beacon)")
         }
       } catch(e){
-        setStatus('Échec total de l\'envoi', 'err');
-        alert('Échec total de l\'envoi : ' + (e?.message || e));
+        alert('Échec total de l\'envoi : ' + (e?.message || e))
       }
     }
 
-    // --- Génération JSON / actions
     $('#btn-gen').addEventListener('click', () => {
-      const res = validateInputs();
-      const $err = $('#errors');
+      const res = validateInputs()
+      const $err = $('#errors')
       if(!res.ok){
-        $err.style.display = 'block';
-        $err.innerText = res.errs.join('\n');
-        $('#preview').textContent = '(corrigez les erreurs puis regénérez)';
-        $('#btn-copy').disabled = true;
-        $('#btn-dl').disabled = true;
-        $('#btn-post').disabled = true;
-        return;
+        $err.style.display = 'block'
+        $err.innerText = res.errs.join('\n')
+        $('#preview').textContent = '(corrigez les erreurs puis regénérez)'
+        $('#btn-copy').disabled = true
+        $('#btn-dl').disabled = true
+        $('#btn-post').disabled = true
+        return
       }
-      $err.style.display = 'none';
-      const json = buildJSON(res.values);
-      const pretty = JSON.stringify(json, null, 2);
-      lastPayloadObj = json;
-      lastPayloadStr = pretty;
-      $('#btn-post').disabled = false;
-      $('#btn-post').onclick = postToWebhook;
-      $('#preview').textContent = pretty;
-      $('#btn-copy').disabled = false;
-      $('#btn-dl').disabled = false;
-      $('#btn-dl').onclick = () => download(`store_profile_${res.values.enseigneSlug || 'magasin'}.json`, pretty);
-      $('#btn-copy').onclick = async () => {
-        try{ await navigator.clipboard.writeText(pretty); alert('JSON copié dans le presse-papiers') }
-        catch(e){ alert('Copie impossible : permissions navigateur') }
-      }
-    });
-
-    // --- Préremplissage depuis viewer (Dupliquer ce magasin)
-    function applyPrefill(){
-      try{
-        const raw = localStorage.getItem('si_prefill');
-        if(!raw) return;
-        const seed = JSON.parse(raw);
-        // Enseigne
-        if(seed.enseigneSlug && document.querySelector('#enseigneSelect')){
-          const sel = document.querySelector('#enseigneSelect');
-          const trySet = () => {
-            const opt = Array.from(sel.options).find(o=>o.value===seed.enseigneSlug);
-            if(opt) sel.value = seed.enseigneSlug;
-            else setTimeout(trySet, 200);
-          };
-          trySet();
-        }
-        // Nom magasin
-        if(seed.storeName && document.querySelector('#storeName')){
-          document.querySelector('#storeName').value = seed.storeName;
-        }
-        // Simuler un Place Details minimal si fourni
-        const p = seed.place || {};
-        if(p && (p.place_id || (p.latitude!=null && p.longitude!=null))){
-          window.lastPlace = {
-            place_id: p.place_id || null,
-            name: p.name || seed.storeName || '',
-            formatted_address: p.formatted_address || '',
-            website: p.website || '',
-            url: p.url || '',
-            types: p.types || [],
-            international_phone_number: p.phone || null,
-            opening_hours: { weekday_text: p.opening_hours || [] },
-            geometry: { location: { lat: ()=>p.latitude, lng: ()=>p.longitude } }
-          };
-          renderPlaceSummary(window.lastPlace);
-        }
-        localStorage.removeItem('si_prefill');
-        setStatus('Prérempli depuis le viewer. Vérifiez puis « Valider & générer le JSON ».','ok');
-      }catch(e){}
-    }
-
-    // --- Boot
-    (function boot(){
-      // webhook + bouton secret
-      const i = $('#webhook');
-      if(i){
-        try{ const saved = localStorage.getItem('webhook_url'); if(saved) i.value = saved; }catch(e){}
-        const b = $('#btn-gen-secret'); if(b) b.addEventListener('click', generateWebhookSecret);
-      }
-      // enseignes
-      loadEnseignes();
-      // Google Places callback global
-      window.initPlaces = function(){
-        initPlaces();
-        applyPrefill();
-      };
-    })();
+      $err.style.display = 'none'
+      const json = buildJSON(res.values)
+      const pretty = JSON.stringify(json, null, 2)
+      lastPayloadObj = json
+      lastPayloadStr = pretty
+      $('#btn-post').disabled = false
+      $('#btn-post').onclick = postToWebhook
+      $('#preview').textContent = pretty
+      $('#btn-copy').disabled = false
+      $('#btn-dl').disabled = false
+      $('#btn-dl').onclick = () => download(`store_profile_${res.values.enseigne.replace(/\s+/g,'_')}.json`, pretty)
+      $('#btn-copy').onclick = async () => { try{ await navigator.clipboard.writeText(pretty); alert('JSON copié dans le presse-papiers') } catch(e){ alert('Copie impossible : permissions navigateur') } }
+    })
   </script>
 
-  <!-- Google Maps JavaScript API + Places (clé limitée par referrer) -->
+  <!-- Google Maps JavaScript API + Places (clé restreinte par référent recommandé) -->
   <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCy5VImTf6SPltnHqVetqh5GPCp-o_JmFo&libraries=places&language=fr&region=FR&callback=initPlaces"></script>
 </body>
 </html>

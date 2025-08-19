@@ -3,129 +3,107 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Profil Magasin — Saisie & Résultats</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Ctext y='50%25' x='50%25' dominant-baseline='middle' text-anchor='middle' font-size='44'%3E🛍️%3C/text%3E%3C/svg%3E">
+  <title>Profil Magasin — Saisie minimale (UX guidée)</title>
   <style>
     :root{
-      --bg:#ffffff;--surface:#ffffff;--surface-alt:#f5f5f7;--text:#1d1d1f;--muted:#6e6e73;--border:#e5e5ea;--accent:#0a84ff;--ok:#34c759;--warn:#ffd60a;--err:#ff3b30
+      --bg:#0b1320;--card:#121a2b;--muted:#7c8aa5;--text:#e6eefc;--accent:#4f8cff;--ok:#10b981;--warn:#f59e0b;--err:#ef4444
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    .container{max-width:1024px;margin:0 auto;padding:24px}
-    header{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);z-index:10}
-    h1{font-size:20px;margin:0 0 4px}
-    .sub{color:var(--muted);font-size:12px;margin:0}
-    section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:16px}
+    body{margin:0;background:linear-gradient(180deg,var(--bg) 0%,#0f172a 100%);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    .container{max-width:980px;margin:0 auto;padding:24px}
+    header{position:sticky;top:0;background:rgba(11,19,32,.85);backdrop-filter:saturate(140%) blur(6px);border-bottom:1px solid #1f2a44}
+    h1{font-size:18px;margin:0 0 4px}
+    .sub{color:#c7d7ff80;font-size:12px;margin:0}
+    section{background:var(--card);border:1px solid #23304d;border-radius:16px;padding:16px;margin-top:16px}
     .grid{display:grid;gap:12px}
     .cols-2{grid-template-columns:1fr 1fr}
+    .cols-3{grid-template-columns:1fr 1fr 1fr}
     label{display:block;font-weight:600;margin-bottom:6px}
-    .help{margin-top:6px;color:var(--muted);font-size:12px}
-    input,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #d2d2d7;background:#fff;color:var(--text);font-size:14px}
-    input:focus,select:focus{outline:none;box-shadow:0 0 0 3px rgba(10,132,255,.25);border-color:var(--accent)}
+    .help{margin-top:6px;color:#c7d7ff80;font-size:12px}
+    input,textarea,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #2a395c;background:#0e1526;color:#fff;font-size:14px}
+    input:focus,textarea:focus,select:focus{outline:2px solid #365da8;outline-offset:0}
     .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .btn{padding:10px 14px;border-radius:12px;border:1px solid #d2d2d7;background:var(--surface-alt);color:var(--text);cursor:pointer}
-    .btn:hover{background:#ededf1}
-    .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-    .btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
-    .btn.warn{background:var(--warn);border-color:var(--warn);color:#111}
-    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface-alt);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--text)}
-    .err{color:var(--err)}
-    .divider{height:1px;background:var(--border);margin:12px 0}
-    .list{border:1px solid var(--border);border-radius:12px;overflow:hidden}
-    .item{padding:10px 12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:12px;align-items:center}
-    .item:first-child{border-top:none}
-    .item a{color:var(--accent);text-decoration:none}
-    .item a:hover{text-decoration:underline}
-    pre{background:#0a0f1a;color:#e6eefc;border-radius:12px;padding:12px;overflow:auto;max-height:420px}
-    .muted{color:var(--muted)}
+    .btn{padding:10px 14px;border-radius:12px;border:1px solid #2a395c;background:#0b1320;color:#fff;cursor:pointer}
+    .btn:hover{border-color:#4b608f}
+    .btn.primary{background:#4169e1;border-color:#4169e1}
+    .btn.ok{background:var(--ok);border-color:var(--ok)}
+    .btn.warn{background:var(--warn);border-color:var(--warn);color:#000}
+    .btn.ghost{background:transparent}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid #223156;background:#132038;border-radius:999px;padding:4px 10px;font-size:12px;color:#cfe0ff}
+    .err{color:#fecaca}
+    pre{background:#0a1120;border:1px solid #1f2a44;border-radius:12px;padding:12px;overflow:auto;max-height:420px}
+    .divider{height:1px;background:#1f2a44;margin:12px 0}
   </style>
 </head>
 <body>
   <header>
     <div class="container" style="padding:12px 24px;">
-      <h1>Profil Magasin — saisie + résultats</h1>
-      <p class="sub">Saisie minimale (schéma « valeur + provenance ») + accès aux profils générés par le workflow n8n.</p>
+      <h1>Profil Magasin — saisie minimale</h1>
+      <p class="sub">Fournissez les informations clés. Le JSON suit le schéma « valeur + provenance » (axes → adresse_contexte, etc.).</p>
     </div>
   </header>
 
   <main class="container">
-    <!-- Étape 0 — Enseigne + Type d’opération -->
     <section>
       <div class="row" style="justify-content:space-between;margin-bottom:8px">
-        <strong>Étape 0 — Contexte</strong>
-        <span class="pill">Enseigne + Type d’opération</span>
+        <strong>Étape 1 — Saisies indispensables</strong>
+        <span class="pill">Entrées : enseigne + magasin + adresse + GPS + URL</span>
       </div>
+
       <div class="grid cols-2">
+        <!-- Enseigne (SELECT) -->
         <div>
           <label for="enseigneSelect">Nom de l’enseigne</label>
           <select id="enseigneSelect"></select>
-          <div class="help">Liste alimentée depuis <code>/enseignes/*.json</code> du dépôt. Valeur affichée = champ <code>nom</code> du JSON.</div>
+          <div class="help">Liste alimentée depuis <code>/enseignes/*.json</code> (champ <code>nom</code>).</div>
         </div>
-        <div>
-          <label for="operation">Type d’opération</label>
-          <select id="operation">
-            <option value="ouverture">Ouverture</option>
-            <option value="anniversaire">Anniversaire</option>
-            <option value="evenement_special">Événement spécial</option>
-            <option value="saisonnier">Opération saisonnière</option>
-            <option value="autre" selected>Autre</option>
-          </select>
+
+        <!-- Recherche Google Places -->
+        <div style="grid-column:1/-1">
+          <label for="placeQuery">Magasin (Recherche Google Places)</label>
+          <div class="row" style="gap:8px">
+            <input id="placeQuery" placeholder="Ex. : Super U Wormhout" autocomplete="off" style="flex:1" />
+            <button class="btn" id="btnPlacesSearch" type="button">Rechercher</button>
+            <span class="help" id="placesStatus">Tapez puis cliquez « Rechercher », puis « Sélectionner ».</span>
+          </div>
+          <div id="placesResults" class="list" style="display:none;margin-top:8px;border:1px solid #2a395c;border-radius:12px"></div>
         </div>
-      </div>
-    </section>
 
-    <!-- Étape 1 — Recherche Google Places (SDK JS uniquement) -->
-    <section>
-      <div class="row" style="justify-content:space-between;margin-bottom:8px">
-        <strong>Étape 1 — Recherche magasin (Google Places)</strong>
-        <span class="pill">AutocompleteSuggestion + Place.fetchFields</span>
-      </div>
-
-      <div class="row" style="gap:8px">
-        <input id="placeQuery" placeholder="Tapez le nom + ville (ex. : Super U Wormhout)" autocomplete="off" style="flex:1" />
-        <button class="btn" id="btnPlacesSearch" type="button">Rechercher</button>
-        <span class="muted" id="placesStatus">Saisissez puis cliquez « Rechercher ».</span>
-      </div>
-      <div id="placesResults" class="list" style="display:none;margin-top:8px"></div>
-      <div class="help">Si rien n’apparaît : vérifier clé/API/Referer dans GCP (Maps JS + Places API activées).</div>
-      <div class="divider"></div>
-
-      <!-- Champs préremplis après sélection -->
-      <div class="grid cols-2">
+        <!-- Champs préremplis après sélection -->
         <div>
           <label for="magasin">Nom du magasin</label>
           <input id="magasin" placeholder="Ex : Super U Wormhout" maxlength="120" />
+          <div class="help">Renseigne <code>store_name</code> et les titres des références.</div>
         </div>
         <div>
           <label for="url">Page web du magasin (site de l’enseigne)</label>
           <input id="url" placeholder="https://www.enseigne.fr/magasins/ville…" />
+          <div class="help">Enregistrée dans <code>axes.adresse_contexte.references_ouvertes[0].url</code>.</div>
         </div>
         <div class="cols-2" style="grid-column:1/-1;display:grid;gap:12px;grid-template-columns:1fr 1fr">
           <div>
-            <label for="adresse">Adresse postale</label>
-            <input id="adresse" placeholder="Numéro, voie, CP Ville" />
+            <label for="adresse">Adresse postale du magasin</label>
+            <input id="adresse" placeholder="Numéro, voie, CP Ville — Ex : 12 rue du Stade, 64100 Bayonne" maxlength="200" />
+            <div class="help">Mappe <code>axes.adresse_contexte.adresse_postale.value</code>.</div>
           </div>
           <div>
-            <label for="coords">Coordonnées GPS — lat, lng</label>
+            <label for="coords">Coordonnées GPS — latitude, longitude (° décimaux)</label>
             <input id="coords" placeholder="48.11552771157894, -1.6767288891938714" />
+            <div class="help">Format recommandé : <code>lat, lng</code>. Sont aussi acceptés : « lat lng » ou « lat; lng ».</div>
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- Étape 2 — Webhook + JSON -->
-    <section>
-      <div class="row" style="justify-content:space-between;margin-bottom:8px">
-        <strong>Étape 2 — Génération & Envoi</strong>
-        <span class="pill">Webhook n8n</span>
-      </div>
-
-      <label for="webhook">URL du webhook n8n (POST JSON)</label>
-      <input id="webhook" value="https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2" />
-      <div class="row" style="margin-top:6px">
-        <button class="btn" id="btn-gen-secret" type="button">Générer un secret</button>
-        <span class="help">Construit une URL du type <code>…/webhook/store-profile/&lt;secret&gt;</code>. Remplacez <code>/webhook-test/</code> par <code>/webhook/</code> en prod.</span>
+      <!-- Webhook -->
+      <div style="grid-column:1/-1;margin-top:8px">
+        <label for="webhook">URL du webhook n8n (POST JSON)</label>
+        <input id="webhook" placeholder="https://votre-n8n.tld/webhook/store-profile" value="https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2" />
+        <div class="help">Le serveur n8n doit autoriser <code>https://ruomaleb.github.io</code> en CORS.</div>
+        <div class="row" style="margin-top:6px">
+          <button class="btn" id="btn-gen-secret" type="button">Générer un secret</button>
+          <span class="help">Construit une URL du type <code>…/webhook/store-profile/&lt;secret&gt;</code>. En prod : <code>/webhook/</code>.</span>
+        </div>
       </div>
 
       <div id="errors" class="help err" style="margin-top:8px;display:none"></div>
@@ -134,88 +112,96 @@
         <button class="btn" id="btn-copy" disabled>Copier</button>
         <button class="btn warn" id="btn-dl" disabled>Télécharger JSON</button>
         <button class="btn ok" id="btn-post" disabled>Envoyer au webhook n8n</button>
+        <span class="help">Le JSON inclut la <strong>provenance</strong> : <code>type</code>=<em>open_web</em>, <code>name</code>=« Site enseigne », <code>url</code>=page magasin, <code>collected_at</code>=ISO 8601.</span>
       </div>
+    </section>
 
+    <section>
+      <strong>Étape 2 — Prévisualisation</strong>
       <div class="divider"></div>
       <pre id="preview">(générez le JSON pour prévisualiser ici)</pre>
     </section>
 
-    <!-- Étape 3 — Résultats du workflow (accès) -->
     <section>
-      <div class="row" style="justify-content:space-between;margin-bottom:8px">
-        <strong>Étape 3 — Résultats récents</strong>
-        <span class="pill">/profiles/ · viewer.html</span>
-      </div>
-      <div class="row" style="gap:8px;margin-bottom:8px">
-        <input id="viewerId" placeholder="Saisir un store_id (ex. sample-superu-wormhout)" style="flex:1" />
-        <a class="btn" id="btnOpenViewer" href="#" target="_blank" rel="noopener">Ouvrir dans le viewer</a>
-        <a class="btn" href="https://github.com/ruomaleb/storeidentity/tree/main/profiles" target="_blank" rel="noopener">Voir tout sur GitHub</a>
-      </div>
-      <div id="resultsBox" class="list" style="display:none"></div>
-      <div class="help">Cliquez un élément pour ouvrir <code>viewer.html</code>. Tri sur <code>last_updated</code> si présent.</div>
+      <strong>Rappel de mappage vers le schéma</strong>
+      <div class="divider"></div>
+      <ul style="margin:0 0 8px 16px;line-height:1.6">
+        <li><code>enseigne</code> ⇐ Nom de l’enseigne</li>
+        <li><code>store_name</code> ⇐ Nom du magasin</li>
+        <li><code>axes.adresse_contexte.adresse_postale.value</code> ⇐ Adresse postale</li>
+        <li><code>axes.adresse_contexte.coordonnees.latitude.value</code> / <code>longitude.value</code> ⇐ Coordonnées GPS</li>
+        <li><code>axes.adresse_contexte.references_ouvertes[]</code> ⇐ Page web (type : <code>page_magasin_enseigne</code>)</li>
+      </ul>
+      <p class="help">Les autres attributs (notoriété, zone, services, etc.) pourront être complétés plus tard.</p>
     </section>
   </main>
 
   <script>
-    const $ = s => document.querySelector(s);
+    const $ = sel => document.querySelector(sel);
 
-    // --- Dépôt GitHub ---
+    // ------------------------------
+    // GitHub API: chargement enseignes
+    // ------------------------------
     const OWNER='ruomaleb', REPO='storeidentity', BRANCH='main';
     const GH_API = (p)=>`https://api.github.com/repos/${OWNER}/${REPO}/contents/${p}?ref=${BRANCH}`;
 
-    // --- 1) Enseignes ---
     async function loadEnseignes(){
-      const sel = $('#enseigneSelect');
+      const sel = document.getElementById('enseigneSelect');
+      if(!sel) return;
       try{
         const r = await fetch(GH_API('enseignes'), {cache:'no-store'});
         if(!r.ok) throw new Error('GitHub API '+r.status);
         const items = await r.json();
-        const jsons = items.filter(it=>/\\.json$/i.test(it.name));
+        const jsons = items.filter(it => /\.json$/i.test(it.name));
         const out = [];
         for(const it of jsons){
           try{
             const jr = await fetch(it.download_url, {cache:'no-store'});
             if(!jr.ok) continue;
             const j = await jr.json();
-            const slug = j.slug || it.name.replace(/\\.json$/,'');
+            const slug = j.slug || it.name.replace(/\.json$/,'');
             const nom  = j.nom  || slug;
             out.push({slug, nom});
           }catch(e){}
         }
-        out.sort((a,b)=>a.nom.localeCompare(b.nom,'fr',{sensitivity:'base'}));
-        sel.innerHTML = '<option value=\"\">— choisir —</option>' + out.map(e=>`<option value=\"${e.slug}\">${e.nom}</option>`).join('');
+        out.sort((a,b)=> a.nom.localeCompare(b.nom,'fr',{sensitivity:'base'}));
+        sel.innerHTML = '<option value="">— choisir —</option>' + out.map(e=>`<option value="${e.slug}">${e.nom}</option>`).join('');
       }catch(e){
-        sel.innerHTML = '<option value=\"\">— choisir —</option><option>Super U</option><option>Intersport</option><option>E.Leclerc</option>';
+        // Fallback minimal si rate-limit
+        sel.innerHTML = '<option value="">— choisir —</option><option value="super-u">Super U</option><option value="intersport">Intersport</option><option value="e-leclerc">E.Leclerc</option>';
       }
     }
 
-    // --- 2) Google Places (SDK JS uniquement) ---
+    // ------------------------------
+    // Google Places (SDK JS uniquement)
+    // ------------------------------
     let placesLib=null, sessionToken=null;
     const placesStatus = (msg, type='info')=>{
-      const el=$('#placesStatus'); if(!el) return;
-      el.textContent=msg; el.style.color=(type==='err'?'#ff3b30':'#6e6e73');
+      const el = document.getElementById('placesStatus'); if(!el) return;
+      el.textContent = msg;
+      el.style.color = (type==='err') ? '#ef4444' : '#c7d7ff80';
     };
+
     async function ensurePlacesReady(){
-      if(!window.google || !google.maps || !google.maps.importLibrary){
-        for(let i=0;i<20 && (!window.google || !google.maps || !google.maps.importLibrary);i++){
-          await new Promise(r=>setTimeout(r,100));
-        }
+      for(let i=0;i<20 && (!window.google || !google.maps || !google.maps.importLibrary);i++){
+        await new Promise(r=>setTimeout(r,100));
       }
       if(!placesLib){
-        placesLib = await google.maps.importLibrary('places'); // fournit AutocompleteSuggestion, Place, etc.
+        placesLib = await google.maps.importLibrary('places');
         sessionToken = new placesLib.AutocompleteSessionToken();
       }
       return placesLib;
     }
+
     function renderSuggestions(sugs=[]){
-      const box = $('#placesResults');
+      const box = document.getElementById('placesResults');
       if(!sugs.length){ box.style.display='none'; box.innerHTML=''; return; }
       box.innerHTML = sugs.map((s,i)=>{
         const p = s.placePrediction || s;
         const title = p?.text || p?.structuredFormat?.mainText || 'Résultat';
         const sec   = p?.structuredFormat?.secondaryText || '';
-        return `<div class="item" data-i="${i}">
-                  <div><strong>${title}</strong>${sec?`<div class="muted">${sec}</div>`:''}</div>
+        return `<div class="item" data-i="${i}" style="display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 12px;border-top:1px solid #2a395c">
+                  <div><strong>${title}</strong>${sec?`<div class="help" style="margin:0">${sec}</div>`:''}</div>
                   <a href="#" data-i="${i}">Sélectionner</a>
                 </div>`;
       }).join('');
@@ -224,8 +210,9 @@
         a.onclick = (e)=>{ e.preventDefault(); onPickSuggestion(sugs[+a.dataset.i]); };
       });
     }
+
     async function searchPlaces(){
-      const q = ($('#placeQuery')?.value || '').trim();
+      const q = (document.getElementById('placeQuery')?.value || '').trim();
       if(!q){ placesStatus('Saisissez une requête (ex. « Super U Wormhout »).','err'); return; }
       try{
         await ensurePlacesReady();
@@ -237,213 +224,261 @@
           placesStatus('Aucun résultat. Ajoutez une ville ou vérifiez la clé/quotas.','err');
           renderSuggestions([]); return;
         }
-        placesStatus('Résultats prêts — choisissez un lieu.');
+        placesStatus('Résultats prêts — cliquez « Sélectionner ».');
         renderSuggestions(suggestions);
       }catch(e){
-        placesStatus('Erreur d’appel Places (clé/référents/API).','err');
+        console.warn('Autocomplete error', e);
+        placesStatus('Erreur d’appel Places (clé/API/référents).','err');
         renderSuggestions([]);
       }
     }
+
     async function onPickSuggestion(sug){
       try{
         await ensurePlacesReady();
         const p = sug?.placePrediction ?? sug ?? {};
         let placeId = p.placeId || p.id || (typeof p.place === 'string' ? p.place : p.place?.id) || null;
-        if (placeId && String(placeId).startsWith('places/')) {
-          placeId = String(placeId).slice('places/'.length);
-        }
+        if(placeId && String(placeId).startsWith('places/')) placeId = String(placeId).slice('places/'.length);
         if(!placeId) throw new Error('placeId manquant');
 
-        const place = new placesLib.Place({ id: placeId, language:'fr' });
-        const fields = ['id','displayName','formattedAddress','location','websiteUri','googleMapsUri'];
-        const opts = { fields };
-        if (sessionToken) opts.sessionToken = sessionToken; // IMPORTANT
-        await place.fetchFields(opts);
+        const tryFetch = async (fields) => {
+          const place = new placesLib.Place({ id: placeId, language:'fr' });
+          const opts = { fields };
+          if(sessionToken) opts.sessionToken = sessionToken;
+          await place.fetchFields(opts);
+          return place;
+        };
 
-        if (place.displayName?.text) $('#magasin').value = place.displayName.text;
-        if (place.formattedAddress)  $('#adresse').value   = place.formattedAddress;
-        if (place.location)          $('#coords').value    = `${place.location.lat()}, ${place.location.lng()}`;
-        if (place.websiteUri || place.googleMapsUri) $('#url').value = place.websiteUri || place.googleMapsUri;
+        let place;
+        try{
+          // Tentative « nouvelle » API
+          place = await tryFetch(['id','displayName','formattedAddress','location','websiteUri','googleMapsUri']);
+        }catch(e1){
+          console.warn('fetchFields(new) → retry legacy', e1);
+          // Tentative legacy
+          place = await tryFetch(['place_id','name','formatted_address','geometry','website','url']);
+        }
 
-        sessionToken = null; // nouvelle session pour la prochaine recherche
-        const box = document.getElementById('placesResults');
-        if (box) box.style.display = 'none';
+        const name   = place.displayName?.text || place.name || '';
+        const addr   = place.formattedAddress  || place.formatted_address || '';
+        const loc    = place.location || place.geometry?.location || null;
+        const lat    = loc ? (typeof loc.lat === 'function' ? loc.lat() : loc.latitude) : null;
+        const lng    = loc ? (typeof loc.lng === 'function' ? loc.lng() : loc.longitude): null;
+        const webUrl = place.websiteUri || place.website || place.googleMapsUri || place.url || '';
+
+        if(name) document.getElementById('magasin').value = name;
+        if(addr) document.getElementById('adresse').value = addr;
+        if(lat!=null && lng!=null) document.getElementById('coords').value = `${lat}, ${lng}`;
+        if(webUrl) document.getElementById('url').value = webUrl;
+
+        sessionToken = null;
+        const box = document.getElementById('placesResults'); if(box) box.style.display='none';
         placesStatus('Lieu sélectionné ✔︎ (champs préremplis).');
       }catch(e){
-        console.error('Détails du lieu — erreur SDK JS', e);
-        placesStatus('Impossible de récupérer les détails du lieu (SDK JS).', 'err');
+        console.error('Détails du lieu — erreur', e);
+        placesStatus('Impossible de récupérer les détails du lieu (voir console).','err');
       }
     }
 
-    // --- 3) Génération / Webhook ---
-    let lastPayloadStr=null, lastPayloadObj=null;
-    const DEFAULT_WEBHOOK='https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2';
+    // ------------------------------
+    // Génération / Webhook
+    // ------------------------------
+    let lastPayloadStr = null; // JSON sérialisé
+    let lastPayloadObj = null; // Objet JSON
+    const DEFAULT_WEBHOOK = 'https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2';
+
+    function uuidv4(){
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random()*16|0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16)
+      })
+    }
     function randomHex(len=32){
-      const arr=new Uint8Array(len/2);
-      if(window.crypto?.getRandomValues) crypto.getRandomValues(arr);
-      else for(let i=0;i<arr.length;i++) arr[i]=Math.floor(Math.random()*256);
-      return Array.from(arr,b=>b.toString(16).padStart(2,'0')).join('');
+      const out = new Uint8Array(len/2);
+      if(window.crypto?.getRandomValues) crypto.getRandomValues(out);
+      else for(let i=0;i<out.length;i++) out[i] = Math.floor(Math.random()*256);
+      return Array.from(out, b => b.toString(16).padStart(2,'0')).join('');
     }
     function generateWebhookSecret(){
-      const i=$('#webhook'); if(!i) return;
-      let base=(i.value||'').trim();
-      if(!base){ base = prompt('Base du webhook n8n','https://n8n.wondermi.agency/webhook/store-profile') || '' }
-      base = base.replace(/\/+$/,'');
+      const input = $('#webhook'); if(!input) return;
+      let base = (input.value || '').trim();
+      if(!base) base = prompt('Base du webhook n8n', 'https://n8n.wondermi.agency/webhook/store-profile') || '';
+      base = base.trim().replace(/\/+$/,'');
       const secret = randomHex(32);
       const url = base + '/' + secret;
-      i.value = url;
-      try{ localStorage.setItem('webhook_url', url) }catch{}
+      input.value = url;
+      try{ localStorage.setItem('webhook_url', url) }catch(e){}
     }
     (function(){
-      const i=$('#webhook');
+      const i = $('#webhook');
       if(i){
-        try{ i.value = localStorage.getItem('webhook_url') || i.value || DEFAULT_WEBHOOK }
-        catch(e){ if(!i.value) i.value = DEFAULT_WEBHOOK }
-        $('#btn-gen-secret')?.addEventListener('click', generateWebhookSecret);
+        try{
+          const saved = localStorage.getItem('webhook_url');
+          i.value = saved || i.value || DEFAULT_WEBHOOK;
+        }catch(e){ if(!i.value) i.value = DEFAULT_WEBHOOK }
+        const b = document.querySelector('#btn-gen-secret');
+        if(b) b.addEventListener('click', generateWebhookSecret);
       }
     })();
 
-    function parseLatLng(s){
-      if(!s) return null;
-      let parts = s.includes(',') ? s.split(',') : (s.includes(';') ? s.split(';') : s.trim().split(' ').filter(Boolean));
-      if(parts.length!==2) return null;
-      const lat=parseFloat(String(parts[0]).replace(',','.'));
-      const lng=parseFloat(String(parts[1]).replace(',','.'));
-      if(Number.isNaN(lat)||Number.isNaN(lng)) return null;
-      if(lat<-90||lat>90||lng<-180||lng>180) return null;
-      return {lat,lng};
+    function parseLatLng(raw){
+      if(!raw) return null;
+      let s = String(raw).trim();
+      let parts = s.includes(',') ? s.split(',') :
+                  s.includes(';') ? s.split(';') :
+                  s.split(' ').filter(Boolean);
+      if(parts.length !== 2) return null;
+      const lat = parseFloat(String(parts[0]).replace(',', '.'));
+      const lng = parseFloat(String(parts[1]).replace(',', '.'));
+      if(Number.isNaN(lat) || Number.isNaN(lng)) return null;
+      if(lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+      return { lat, lng };
     }
+
     function validateInputs(){
-      const enseigneSel=$('#enseigneSelect'); const enseigne=(enseigneSel && enseigneSel.options[enseigneSel.selectedIndex]?.text || '').trim();
-      const operation=$('#operation').value||'autre';
-      const magasin=$('#magasin').value.trim();
-      const adresse=$('#adresse').value.trim();
-      const url=$('#url').value.trim();
-      const coords=parseLatLng($('#coords').value.trim());
-      const errs=[];
+      const enseigneSel = document.getElementById('enseigneSelect');
+      const enseigne = (enseigneSel && enseigneSel.options[enseigneSel.selectedIndex]?.text || '').trim();
+      const magasin  = $('#magasin').value.trim();
+      const adresse  = $('#adresse').value.trim();
+      const url      = $('#url').value.trim();
+      const coordsRaw = $('#coords').value.trim();
+
+      const errs = [];
       if(!enseigne) errs.push('• Nom de l’enseigne requis');
       if(!magasin) errs.push('• Nom du magasin requis');
       if(!adresse) errs.push('• Adresse postale requise');
-      if(!/^https?:\/\//i.test(url)) errs.push('• URL de la page magasin invalide (http/https)');
-      if(!coords) errs.push('• Coordonnées GPS invalides (lat, lng)');
-      return { ok:errs.length===0, errs, values:{ enseigne, operation, magasin, adresse, url, lat:coords?.lat, lng:coords?.lng } }
+
+      const urlOk = /^https?:\/\//i.test(url);
+      if(!url || !urlOk) errs.push('• URL de la page magasin invalide (http/https)');
+
+      const coords = parseLatLng(coordsRaw);
+      if(!coords) errs.push('• Coordonnées GPS invalides (format : lat, lng)');
+
+      return { ok: errs.length===0, errs, values: { enseigne, magasin, adresse, url, lat: coords?.lat, lng: coords?.lng } }
     }
-    function defaultSource(url){ return { type:'open_web', name:'Site enseigne', url, collected_at:new Date().toISOString() } }
-    function buildJSON(v){
-      const src=defaultSource(v.url); const now=new Date().toISOString();
+
+    function defaultSource(url){
+      return { type: 'open_web', name: 'Site enseigne', url, collected_at: new Date().toISOString() }
+    }
+    function buildJSON(vals){
+      const src = defaultSource(vals.url);
+      const now = new Date().toISOString();
       return {
-        store_id: (crypto?.randomUUID ? crypto.randomUUID() : (Date.now()+'-'+Math.random().toString(16).slice(2))),
-        enseigne: v.enseigne,
-        store_name: v.magasin,
+        store_id: uuidv4(),
+        enseigne: vals.enseigne,
+        store_name: vals.magasin,
         last_updated: now,
         goal: 'hybride',
-        operation_type: v.operation||'autre',
         axes: {
           adresse_contexte: {
-            adresse_postale: { value: v.adresse, sources: [src] },
+            adresse_postale: { value: vals.adresse, sources: [src] },
             coordonnees: {
-              latitude:  { value: v.lat, sources: [src] },
-              longitude: { value: v.lng, sources: [src] }
+              latitude:  { value: vals.lat, sources: [src] },
+              longitude: { value: vals.lng, sources: [src] }
             },
             references_ouvertes: [
-              { page_type:'page_magasin_enseigne', title:`${v.magasin} — ${v.enseigne}`, language:'fr', url:v.url, source:src, collected_at: now }
+              {
+                page_type: 'page_magasin_enseigne',
+                title: `${vals.magasin} — ${vals.enseigne}`,
+                language: 'fr',
+                url: vals.url,
+                source: src,
+                collected_at: now
+              }
             ]
           }
         }
       }
     }
-    function download(filename, text){ const blob=new Blob([text],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href) }
+
+    function download(filename, text){
+      const blob = new Blob([text], {type: 'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
     async function postToWebhook(){
-      const webhook=($('#webhook')?.value||'').trim(); if(!/^https?:\/\//i.test(webhook)){ alert('URL du webhook n8n invalide'); return }
-      let payloadStr=lastPayloadStr;
+      const webhook = ($('#webhook')?.value || '').trim();
+      if(!/^https?:\/\//i.test(webhook)){
+        alert('URL du webhook n8n invalide'); return;
+      }
+      let payloadStr = lastPayloadStr;
       if(!payloadStr){
-        const r=validateInputs();
-        if(!r.ok){ alert('Corrigez les erreurs puis regénérez.'); return }
-        const obj=buildJSON(r.values);
-        payloadStr=JSON.stringify(obj);
-        lastPayloadObj=obj;
-        lastPayloadStr=payloadStr;
+        const res = validateInputs();
+        if(!res.ok){ alert("Données incomplètes : générez d'abord un JSON valide."); return }
+        const obj = buildJSON(res.values);
+        payloadStr = JSON.stringify(obj);
+        lastPayloadObj = obj;
+        lastPayloadStr = payloadStr;
       }
       try{
-        try{ localStorage.setItem('webhook_url',webhook) }catch{}
-        const resp=await fetch(webhook,{ method:'POST', headers:{'content-type':'application/json'}, body:payloadStr, mode:'cors', credentials:'omit' });
-        if(resp.ok){ alert('Webhook envoyé ✅'); return } else { console.warn('CORS/HTTP non OK, fallback Beacon :', resp.status, await resp.text().catch(()=>'')) }
-      }catch(err){ console.warn('fetch échoué, fallback Beacon :', err) }
-      try{ const ok=navigator.sendBeacon(webhook,new Blob([payloadStr],{type:'text/plain;charset=UTF-8'})); alert(ok?'Webhook envoyé (Beacon) ✅':'Échec d’envoi (Beacon)') }catch(e){ alert('Échec total : '+(e?.message||e)) }
-    }
-    $('#btn-gen').addEventListener('click', ()=>{
-      const r=validateInputs(); const $err=$('#errors');
-      if(!r.ok){ $err.style.display='block'; $err.innerText=r.errs.join('\n'); $('#preview').textContent='(corrigez les erreurs puis regénérez)'; $('#btn-copy').disabled=true; $('#btn-dl').disabled=true; $('#btn-post').disabled=true; return }
-      $err.style.display='none';
-      const json=buildJSON(r.values); const pretty=JSON.stringify(json,null,2);
-      lastPayloadObj=json; lastPayloadStr=pretty;
-      $('#preview').textContent=pretty;
-      $('#btn-copy').disabled=false; $('#btn-dl').disabled=false; $('#btn-post').disabled=false;
-      $('#btn-copy').onclick=async()=>{ try{ await navigator.clipboard.writeText(pretty); alert('JSON copié') }catch{ alert('Copie impossible') } }
-      $('#btn-dl').onclick=()=>download(`store_profile_${r.values.enseigne.replace(/\s+/g,'_')}.json`, pretty);
-      $('#btn-post').onclick=postToWebhook;
-    });
-
-    // --- 4) Résultats /profiles/ ---
-    async function loadRecentProfiles(){
-      const box=$('#resultsBox'); box.innerHTML=''; box.style.display='none';
+        try{ localStorage.setItem('webhook_url', webhook); } catch(e){}
+        const resp = await fetch(webhook, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: payloadStr,
+          mode: 'cors',
+          credentials: 'omit'
+        });
+        const txt = await resp.text().catch(()=> '');
+        if(resp.ok){ alert('Webhook envoyé ✅'); return; }
+        console.warn('CORS/HTTP non OK, fallback Beacon :', resp.status, txt);
+      }catch(err){
+        console.warn('fetch JSON échoué, fallback Beacon :', err);
+      }
       try{
-        const r=await fetch(GH_API('profiles'), {cache:'no-store'}); if(!r.ok) throw new Error('GitHub API '+r.status);
-        const items=(await r.json()).filter(it=>/\\.json$/i.test(it.name));
-        const first=items.slice(0,25);
-        const rows=[];
-        for(const it of first){
-          try{
-            const j=await fetch(it.download_url,{cache:'no-store'}).then(r=>r.json());
-            const id=j.store_id || it.name.replace(/\\.json$/,'');
-            const t=j.last_updated || '';
-            const enseigne=j.enseigne || '';
-            const sn=j.store_name || '';
-            rows.push({id, file:it.name, when:t, enseigne, store:sn});
-          }catch(e){}
-        }
-        rows.sort((a,b)=> (b.when||'').localeCompare(a.when||''));
-        if(!rows.length){ box.innerHTML='<div class="item"><div>Aucun profil trouvé</div></div>'; box.style.display='block'; return; }
-        box.innerHTML = rows.map(r=>{
-          const vId = encodeURIComponent(r.id);
-          const hrefId = `viewer.html?id=${vId}`;
-          const hrefPath = `viewer.html?json=${encodeURIComponent('profiles/'+r.file)}&md=${encodeURIComponent('profiles/'+r.file.replace(/\\.json$/,'.md'))}`;
-          const title = (r.store?`${r.store} — `:'') + (r.enseigne||'');
-          const when = r.when ? new Date(r.when).toLocaleString('fr-FR') : '—';
-          return `<div class="item">
-                    <div>
-                      <div><strong>${title || r.file}</strong></div>
-                      <div class="muted">ID: ${r.id} · MAJ: ${when}</div>
-                    </div>
-                    <div class="row">
-                      <a class="btn" href="${hrefId}" target="_blank" rel="noopener">Viewer (id)</a>
-                      <a class="btn" href="${hrefPath}" target="_blank" rel="noopener">Viewer (chemins)</a>
-                    </div>
-                  </div>`;
-        }).join('');
-        box.style.display='block';
-      }catch(e){
-        box.innerHTML='<div class="item"><div>Impossible de charger la liste des profils (GitHub API). Ouvrez le dossier <a href="https://github.com/ruomaleb/storeidentity/tree/main/profiles" target="_blank" rel="noopener">profiles</a>.</div></div>';
-        box.style.display='block';
+        const blob = new Blob([payloadStr], { type: 'text/plain;charset=UTF-8' });
+        const sent = navigator.sendBeacon(webhook, blob);
+        alert(sent ? 'Webhook envoyé (Beacon) ✅' : "Échec d'envoi (Beacon)");
+      } catch(e){
+        alert('Échec total : ' + (e?.message || e));
       }
     }
 
-    // --- 5) Boot ---
+    // ------------------------------
+    // Bind UI
+    // ------------------------------
     document.addEventListener('DOMContentLoaded', ()=>{
       loadEnseignes();
-      loadRecentProfiles();
-      $('#btnPlacesSearch')?.addEventListener('click', searchPlaces);
-      $('#btnOpenViewer')?.addEventListener('click', (e)=>{
-        e.preventDefault();
-        const id=($('#viewerId')?.value||'').trim(); if(!id) return;
-        window.open(`viewer.html?id=${encodeURIComponent(id)}`,'_blank','noopener');
+      const btnSearch = document.getElementById('btnPlacesSearch');
+      if(btnSearch) btnSearch.addEventListener('click', searchPlaces);
+
+      $('#btn-gen').addEventListener('click', () => {
+        const res = validateInputs();
+        const $err = $('#errors');
+        if(!res.ok){
+          $err.style.display = 'block';
+          $err.innerText = res.errs.join('\n');
+          $('#preview').textContent = '(corrigez les erreurs puis regénérez)';
+          $('#btn-copy').disabled = true;
+          $('#btn-dl').disabled = true;
+          $('#btn-post').disabled = true;
+          return;
+        }
+        $err.style.display = 'none';
+        const json = buildJSON(res.values);
+        const pretty = JSON.stringify(json, null, 2);
+        lastPayloadObj = json;
+        lastPayloadStr = pretty;
+        $('#preview').textContent = pretty;
+
+        $('#btn-post').disabled = false;
+        $('#btn-post').onclick = postToWebhook;
+
+        $('#btn-copy').disabled = false;
+        $('#btn-copy').onclick = async ()=>{ try{ await navigator.clipboard.writeText(pretty); alert('JSON copié') } catch{ alert('Copie impossible') } };
+
+        $('#btn-dl').disabled = false;
+        const fileName = 'store_profile_' + (res.values.enseigne || '').trim().split(/\s+/).join('_') + '.json';
+        $('#btn-dl').onclick = ()=> download(fileName, pretty);
       });
     });
   </script>
 
-  <!-- Google Maps JS + Places (nouvelle API, SDK uniquement) -->
-  <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCy5VImTf6SPltnHqVetqh5GPCp-o_JmFo&libraries=places&language=fr&region=FR&loading=async">
-  </script>
+  <!-- Google Maps JS + Places (SDK uniquement) -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCy5VImTf6SPltnHqVetqh5GPCp-o_JmFo&libraries=places&language=fr&region=FR&loading=async"></script>
 </body>
 </html>

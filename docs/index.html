@@ -277,29 +277,82 @@
         renderSuggestions([]);
       }
     }
-    async function onPickSuggestion(sug){
-      try{
-        await ensurePlacesReady();
-        const p = sug.placePrediction || sug;
-        const placeId = p?.placeId || p?.id || p?.place?.id;
-        if(!placeId) throw new Error('placeId manquant');
+async function onPickSuggestion(sug){
+  try{
+    // --- Préparer la lib Places ---
+    await ensurePlacesReady();
 
-        const place = new placesLib.Place({ id: placeId, language:'fr' });
-        const fields = ['displayName','formattedAddress','location','websiteUri','googleMapsURI'];
-        await place.fetchFields({ fields });
+    // --- Helpers embarqués (aucune modif ailleurs) ---
+    const getGoogleApiKey = () => {
+      const sc = Array.from(document.scripts).find(s => s.src && s.src.includes('maps.googleapis.com/maps/api/js'));
+      try { return sc ? new URL(sc.src).searchParams.get('key') || '' : ''; } catch { return ''; }
+    };
+    const getSuggestionId = (s) => {
+      const p = s?.placePrediction || s || {};
+      return p.placeId || p.id || (typeof p.place === 'string' ? p.place : p.place?.id) || null;
+    };
+    const fetchPlaceDetailsViaREST = async (placeIdOrName) => {
+      const apiKey = getGoogleApiKey();
+      const name = String(placeIdOrName).startsWith('places/') ? placeIdOrName : `places/${placeIdOrName}`;
+      const fieldMask = 'id,displayName,formattedAddress,location,websiteUri,googleMapsUri';
+      const url = `https://places.googleapis.com/v1/${encodeURIComponent(name)}?languageCode=fr&regionCode=FR`;
+      const r = await fetch(url, {
+        headers: {
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask': fieldMask
+        }
+      });
+      if(!r.ok) throw new Error(`REST Places details HTTP ${r.status}`);
+      return r.json();
+    };
 
-        $('#magasin').value = place.displayName?.text || $('#magasin').value;
-        $('#adresse').value = place.formattedAddress || $('#adresse').value;
-        if(place.location){ $('#coords').value = `${place.location.lat()}, ${place.location.lng()}` }
-        $('#url').value = place.websiteUri || place.googleMapsURI || $('#url').value;
+    // --- Récup ID depuis la suggestion ---
+    const idOrName = getSuggestionId(sug);
+    if(!idOrName) throw new Error('placeId manquant');
 
-        sessionToken = null; // nouvelle session pour la prochaine recherche
-        $('#placesResults').style.display='none';
-        placesStatus('Lieu sélectionné ✔︎ (champs préremplis).');
-      }catch(e){
-        placesStatus('Impossible de récupérer les détails du lieu.','err');
-      }
+    // --- Tentative 1 : SDK JS ---
+    let rempli = false;
+    try{
+      const fields = ['displayName','formattedAddress','location','websiteUri','googleMapsURI'];
+      const place = new placesLib.Place({ id: idOrName, language:'fr' });
+      const opts = { fields };
+      if (sessionToken) opts.sessionToken = sessionToken; // IMPORTANT
+      await place.fetchFields(opts);
+
+      $('#magasin').value = place.displayName?.text || $('#magasin').value;
+      $('#adresse').value = place.formattedAddress || $('#adresse').value;
+      if(place.location){ $('#coords').value = `${place.location.lat()}, ${place.location.lng()}` }
+      $('#url').value = place.websiteUri || place.googleMapsURI || $('#url').value;
+      rempli = true;
+    }catch(e){
+      console.warn('Place.fetchFields (SDK JS) a échoué, fallback REST v1 →', e);
     }
+
+    // --- Tentative 2 : REST v1 (fallback robuste) ---
+    if(!rempli){
+      const data = await fetchPlaceDetailsViaREST(idOrName);
+      const dn   = data.displayName?.text || '';
+      const addr = data.formattedAddress || '';
+      const lat  = data.location?.latitude;
+      const lng  = data.location?.longitude;
+      const web  = data.websiteUri || data.googleMapsUri || '';
+
+      if(dn)   $('#magasin').value = dn;
+      if(addr) $('#adresse').value = addr;
+      if(lat!=null && lng!=null) $('#coords').value = `${lat}, ${lng}`;
+      if(web)  $('#url').value = web;
+    }
+
+    // Fin de session + UI
+    sessionToken = null; // nouvelle session pour la prochaine recherche
+    const list = document.getElementById('placesResults'); if(list) list.style.display='none';
+    placesStatus('Lieu sélectionné ✔︎ (champs préremplis).');
+  }catch(e){
+    console.error('Détails du lieu — erreur', e);
+    placesStatus('Impossible de récupérer les détails du lieu (voir console).','err');
+  }
+}
+
 
     // -------------------------------------------------
     // 3) Génération / Webhook

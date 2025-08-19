@@ -1,0 +1,42 @@
+{
+  "store_id": "sample-superu-wormhout",
+  "enseigne": "Super U",
+  "store_name": "Super U Wormhout",
+  "last_updated": "2025-08-14T10:00:00.000Z",
+  "goal": "hybride",
+  "operation_type": "autre",
+  "axes": {
+    "adresse_contexte": {
+      "adresse_postale": {
+        "value": "747 Rue de Bergues, 59470 Wormhout",
+        "sources": [
+          {
+            "type": "open_web",
+            "name": "Site enseigne",
+            "url": "https://www.magasins-u.com/magasin/superu-wormhout.m21813",
+            "collected_at": "2025-08-14T10:00:00.000Z"
+          }
+        ]
+      },
+      "coordonnees": {
+        "latitude":  { "value": 50.89125790717467, "sources": [{ "type": "open_web", "name": "Site enseigne", "url": "https://www.magasins-u.com/magasin/superu-wormhout.m21813", "collected_at": "2025-08-14T10:00:00.000Z" }] },
+        "longitude": { "value": 2.4618080800000003, "sources": [{ "type": "open_web", "name": "Site enseigne", "url": "https://www.magasins-u.com/magasin/superu-wormhout.m21813", "collected_at": "2025-08-14T10:00:00.000Z" }] }
+      },
+      "references_ouvertes": [
+        {
+          "page_type": "page_magasin_enseigne",
+          "title": "Super U Wormhout — Super U",
+          "language": "fr",
+          "url": "https://www.magasins-u.com/magasin/superu-wormhout.m21813",
+          "source": {
+            "type": "open_web",
+            "name": "Site enseigne",
+            "url": "https://www.magasins-u.com/magasin/superu-wormhout.m21813",
+            "collected_at": "2025-08-14T10:00:00.000Z"
+          },
+          "collected_at": "2025-08-14T10:00:00.000Z"
+        }
+      ]
+    }
+  }
+}

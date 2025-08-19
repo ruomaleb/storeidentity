@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schema/enseigne.schema.json",
+  "title": "Enseigne",
+  "type": "object",
+  "required": ["slug", "nom"],
+  "properties": {
+    "slug": { "type": "string", "minLength": 1 },
+    "nom":  { "type": "string", "minLength": 1 },
+    "site_officiel": { "type": "string", "format": "uri" },
+    "wikipedia": { "type": "string", "format": "uri" },
+    "positionnement": {
+      "type": "object",
+      "properties": {
+        "baseline": { "type": "string" },
+        "territoire": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "perception": {
+      "type": "object",
+      "properties": {
+        "forces": { "type": "array", "items": { "type": "string" } },
+        "faiblesses": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "references_medias": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source", "titre", "url"],
+        "properties": {
+          "source": { "type": "string" },
+          "titre": { "type": "string" },
+          "url": { "type": "string", "format": "uri" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "reseaux_sociaux": {
+      "type": "object",
+      "properties": {
+        "facebook": { "type": "string", "format": "uri" },
+        "instagram": { "type": "string", "format": "uri" },
+        "tiktok": { "type": "string", "format": "uri" },
+        "youtube": { "type": "string", "format": "uri" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

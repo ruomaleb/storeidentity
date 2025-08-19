@@ -1,0 +1,21 @@
+{
+  "slug": "slug-enseigne",
+  "nom": "Nom de l’enseigne",
+  "site_officiel": "https://www.exemple.com",
+  "wikipedia": "https://fr.wikipedia.org/wiki/...",
+  "positionnement": {
+    "baseline": "Promesse / signature",
+    "territoire": ["prix", "proximité", "choix"]
+  },
+  "perception": {
+    "forces": ["liste courte"],
+    "faiblesses": ["liste courte"]
+  },
+  "references_medias": [
+    {"source": "PQR", "titre": "Article utile", "url": "https://..."},
+    {"source": "Etude sectorielle", "titre": "Baromètre 2024", "url": "https://..."}
+  ],
+  "reseaux_sociaux": {
+    "facebook": "", "instagram": "", "tiktok": "", "youtube": ""
+  }
+}

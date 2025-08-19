@@ -88,7 +88,7 @@
         <span class="muted" id="placesStatus">Saisissez puis cliquez « Rechercher ».</span>
       </div>
       <div id="placesResults" class="list" style="display:none;margin-top:8px"></div>
-      <div class="help">En cas d’absence de résultats, vérifiez que votre clé autorise **Maps JavaScript API** et **Places API** pour le référent GitHub Pages.</div>
+      <div class="help">En cas d’absence de résultats, vérifiez que votre clé autorise <strong>Maps JavaScript API</strong> et <strong>Places API</strong> pour le référent GitHub Pages.</div>
       <div class="divider"></div>
 
       <!-- Champs préremplis après sélection -->
@@ -159,16 +159,12 @@
   <script>
     const $ = s => document.querySelector(s);
 
-    // -------------------------
-    // 0) Constantes du dépôt
-    // -------------------------
+    // --- Dépôt GitHub ---
     const OWNER='ruomaleb', REPO='storeidentity', BRANCH='main';
     const GH_API = (p)=>`https://api.github.com/repos/${OWNER}/${REPO}/contents/${p}?ref=${BRANCH}`;
     const toRaw  = (p)=>`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${p.replace(/^\\/+/, '')}`;
 
-    // -------------------------
-    // 1) Enseignes (menu déroulant)
-    // -------------------------
+    // --- 1) Enseignes ---
     async function loadEnseignes(){
       const sel = $('#enseigneSelect');
       try{
@@ -194,9 +190,7 @@
       }
     }
 
-    // -------------------------
-    // 2) Google Places (nouvelle API)
-    // -------------------------
+    // --- 2) Google Places (nouvelle API) ---
     let placesLib=null, sessionToken=null;
     const placesStatus = (msg, type='info')=>{
       const el=$('#placesStatus'); if(!el) return;
@@ -204,7 +198,6 @@
     };
     async function ensurePlacesReady(){
       if(!window.google || !google.maps || !google.maps.importLibrary){
-        // petite attente si le script se termine de charger
         for(let i=0;i<15 && (!window.google || !google.maps || !google.maps.importLibrary);i++){
           await new Promise(r=>setTimeout(r,100));
         }
@@ -263,13 +256,11 @@
         const fields = ['displayName','formattedAddress','location','websiteUri','googleMapsURI'];
         await place.fetchFields({ fields });
 
-        // remplissage des champs
         $('#magasin').value = place.displayName?.text || $('#magasin').value;
         $('#adresse').value = place.formattedAddress || $('#adresse').value;
         if(place.location){ $('#coords').value = `${place.location.lat()}, ${place.location.lng()}` }
         $('#url').value = place.websiteUri || place.googleMapsURI || $('#url').value;
 
-        // nouvelle session pour la prochaine recherche
         sessionToken = null;
         $('#placesResults').style.display='none';
         placesStatus('Lieu sélectionné ✔︎ (champs préremplis).');
@@ -278,9 +269,7 @@
       }
     }
 
-    // -------------------------
-    // 3) Génération / Webhook
-    // -------------------------
+    // --- 3) Génération / Webhook ---
     let lastPayloadStr=null, lastPayloadObj=null;
     function uuidv4(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==='x'?r:(r&0x3|0x8);return v.toString(16)})}
     const DEFAULT_WEBHOOK='https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2';
@@ -363,15 +352,12 @@
       $('#btn-post').onclick=postToWebhook;
     });
 
-    // -------------------------
-    // 4) Résultats du workflow (liste)
-    // -------------------------
+    // --- 4) Résultats /profiles/ ---
     async function loadRecentProfiles(){
       const box=$('#resultsBox'); box.innerHTML=''; box.style.display='none';
       try{
         const r=await fetch(GH_API('profiles')); if(!r.ok) throw new Error('GitHub API '+r.status);
         const items=(await r.json()).filter(it=>/\\.json$/i.test(it.name));
-        // on limite le nombre de fetch pour éviter le rate limit
         const first=items.slice(0,25);
         const rows=[];
         for(const it of first){
@@ -410,17 +396,11 @@
       }
     }
 
-    // -------------------------
-    // 5) Boot
-    // -------------------------
+    // --- 5) Boot ---
     document.addEventListener('DOMContentLoaded', ()=>{
       loadEnseignes();
       loadRecentProfiles();
-
-      // Recherche Places
       $('#btnPlacesSearch')?.addEventListener('click', searchPlaces);
-
-      // Viewer direct par ID
       $('#btnOpenViewer')?.addEventListener('click', (e)=>{
         e.preventDefault();
         const id=($('#viewerId')?.value||'').trim(); if(!id) return;

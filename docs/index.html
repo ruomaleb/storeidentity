@@ -60,7 +60,7 @@
         <div>
           <label for="enseigneSelect">Nom de l’enseigne</label>
           <select id="enseigneSelect"></select>
-          <div class="help">Liste alimentée depuis <code>/enseignes/*.json</code> (champ <code>nom</code> du JSON). Fallback intégré.</div>
+          <div class="help">Liste alimentée depuis <code>/enseignes/*.json</code> du dépôt. Valeur affichée = champ <code>nom</code> du JSON.</div>
         </div>
         <div>
           <label for="operation">Type d’opération</label>
@@ -75,7 +75,7 @@
       </div>
     </section>
 
-    <!-- Étape 1 — Recherche Google Places (nouvelle API) -->
+    <!-- Étape 1 — Recherche Google Places (SDK JS uniquement) -->
     <section>
       <div class="row" style="justify-content:space-between;margin-bottom:8px">
         <strong>Étape 1 — Recherche magasin (Google Places)</strong>
@@ -159,70 +159,37 @@
   <script>
     const $ = s => document.querySelector(s);
 
-    // -------------------------------------------------
-    // Utilitaires SANS regex fragiles
-    // -------------------------------------------------
-    function parseLatLng(raw){
-      if(!raw) return null;
-      let s = String(raw).trim();
-      // séparateurs acceptés : "," ";" ou espace
-      let parts = s.includes(',') ? s.split(',') :
-                  s.includes(';') ? s.split(';') :
-                  s.split(' ').filter(Boolean);
-      if(parts.length !== 2) return null;
-      const lat = parseFloat(String(parts[0]).replace(',', '.'));
-      const lng = parseFloat(String(parts[1]).replace(',', '.'));
-      if(Number.isNaN(lat) || Number.isNaN(lng)) return null;
-      if(lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
-      return { lat, lng };
-    }
-    function trimTrailingSlashes(u){
-      let x = (u || '').trim();
-      while(x.endsWith('/')) x = x.slice(0, -1);
-      return x;
-    }
-    function joinWithUnderscores(s){
-      return String(s || '').split(' ').filter(Boolean).join('_');
-    }
-
-    // -------------------------------------------------
-    // Constantes dépôt GitHub
-    // -------------------------------------------------
+    // --- Dépôt GitHub ---
     const OWNER='ruomaleb', REPO='storeidentity', BRANCH='main';
     const GH_API = (p)=>`https://api.github.com/repos/${OWNER}/${REPO}/contents/${p}?ref=${BRANCH}`;
 
-    // -------------------------------------------------
-    // 1) Enseignes — charger /enseignes/*.json
-    // -------------------------------------------------
+    // --- 1) Enseignes ---
     async function loadEnseignes(){
       const sel = $('#enseigneSelect');
       try{
         const r = await fetch(GH_API('enseignes'), {cache:'no-store'});
-        if(!r.ok) throw new Error('GitHub API ' + r.status);
+        if(!r.ok) throw new Error('GitHub API '+r.status);
         const items = await r.json();
-        const jsons = items.filter(it => /\.json$/i.test(it.name));
+        const jsons = items.filter(it=>/\\.json$/i.test(it.name));
         const out = [];
         for(const it of jsons){
           try{
             const jr = await fetch(it.download_url, {cache:'no-store'});
             if(!jr.ok) continue;
             const j = await jr.json();
-            const slug = j.slug || it.name.replace(/\.json$/,'');
+            const slug = j.slug || it.name.replace(/\\.json$/,'');
             const nom  = j.nom  || slug;
             out.push({slug, nom});
           }catch(e){}
         }
-        out.sort((a,b)=> a.nom.localeCompare(b.nom,'fr',{sensitivity:'base'}));
-        sel.innerHTML = '<option value="">— choisir —</option>' + out.map(e=>`<option value="${e.slug}">${e.nom}</option>`).join('');
+        out.sort((a,b)=>a.nom.localeCompare(b.nom,'fr',{sensitivity:'base'}));
+        sel.innerHTML = '<option value=\"\">— choisir —</option>' + out.map(e=>`<option value=\"${e.slug}\">${e.nom}</option>`).join('');
       }catch(e){
-        // Fallback si API GitHub indisponible (liste courte)
-        sel.innerHTML = '<option value="">— choisir —</option><option value="super-u">Super U</option><option value="intersport">Intersport</option><option value="e-leclerc">E.Leclerc</option>';
+        sel.innerHTML = '<option value=\"\">— choisir —</option><option>Super U</option><option>Intersport</option><option>E.Leclerc</option>';
       }
     }
 
-    // -------------------------------------------------
-    // 2) Google Places (nouvelle API 2025)
-    // -------------------------------------------------
+    // --- 2) Google Places (SDK JS uniquement) ---
     let placesLib=null, sessionToken=null;
     const placesStatus = (msg, type='info')=>{
       const el=$('#placesStatus'); if(!el) return;
@@ -230,7 +197,7 @@
     };
     async function ensurePlacesReady(){
       if(!window.google || !google.maps || !google.maps.importLibrary){
-        for(let i=0;i<15 && (!window.google || !google.maps || !google.maps.importLibrary);i++){
+        for(let i=0;i<20 && (!window.google || !google.maps || !google.maps.importLibrary);i++){
           await new Promise(r=>setTimeout(r,100));
         }
       }
@@ -277,86 +244,38 @@
         renderSuggestions([]);
       }
     }
-async function onPickSuggestion(sug){
-  try{
-    // --- Préparer la lib Places ---
-    await ensurePlacesReady();
-
-    // --- Helpers embarqués (aucune modif ailleurs) ---
-    const getGoogleApiKey = () => {
-      const sc = Array.from(document.scripts).find(s => s.src && s.src.includes('maps.googleapis.com/maps/api/js'));
-      try { return sc ? new URL(sc.src).searchParams.get('key') || '' : ''; } catch { return ''; }
-    };
-    const getSuggestionId = (s) => {
-      const p = s?.placePrediction || s || {};
-      return p.placeId || p.id || (typeof p.place === 'string' ? p.place : p.place?.id) || null;
-    };
-    const fetchPlaceDetailsViaREST = async (placeIdOrName) => {
-      const apiKey = getGoogleApiKey();
-      const name = String(placeIdOrName).startsWith('places/') ? placeIdOrName : `places/${placeIdOrName}`;
-      const fieldMask = 'id,displayName,formattedAddress,location,websiteUri,googleMapsUri';
-      const url = `https://places.googleapis.com/v1/${encodeURIComponent(name)}?languageCode=fr&regionCode=FR`;
-      const r = await fetch(url, {
-        headers: {
-          'X-Goog-Api-Key': apiKey,
-          'X-Goog-FieldMask': fieldMask
+    async function onPickSuggestion(sug){
+      try{
+        await ensurePlacesReady();
+        const p = sug?.placePrediction ?? sug ?? {};
+        let placeId = p.placeId || p.id || (typeof p.place === 'string' ? p.place : p.place?.id) || null;
+        if (placeId && String(placeId).startsWith('places/')) {
+          placeId = String(placeId).slice('places/'.length);
         }
-      });
-      if(!r.ok) throw new Error(`REST Places details HTTP ${r.status}`);
-      return r.json();
-    };
+        if(!placeId) throw new Error('placeId manquant');
 
-    // --- Récup ID depuis la suggestion ---
-    const idOrName = getSuggestionId(sug);
-    if(!idOrName) throw new Error('placeId manquant');
+        const place = new placesLib.Place({ id: placeId, language:'fr' });
+        const fields = ['id','displayName','formattedAddress','location','websiteUri','googleMapsUri'];
+        const opts = { fields };
+        if (sessionToken) opts.sessionToken = sessionToken; // IMPORTANT
+        await place.fetchFields(opts);
 
-    // --- Tentative 1 : SDK JS ---
-    let rempli = false;
-    try{
-      const fields = ['displayName','formattedAddress','location','websiteUri','googleMapsURI'];
-      const place = new placesLib.Place({ id: idOrName, language:'fr' });
-      const opts = { fields };
-      if (sessionToken) opts.sessionToken = sessionToken; // IMPORTANT
-      await place.fetchFields(opts);
+        if (place.displayName?.text) $('#magasin').value = place.displayName.text;
+        if (place.formattedAddress)  $('#adresse').value   = place.formattedAddress;
+        if (place.location)          $('#coords').value    = `${place.location.lat()}, ${place.location.lng()}`;
+        if (place.websiteUri || place.googleMapsUri) $('#url').value = place.websiteUri || place.googleMapsUri;
 
-      $('#magasin').value = place.displayName?.text || $('#magasin').value;
-      $('#adresse').value = place.formattedAddress || $('#adresse').value;
-      if(place.location){ $('#coords').value = `${place.location.lat()}, ${place.location.lng()}` }
-      $('#url').value = place.websiteUri || place.googleMapsURI || $('#url').value;
-      rempli = true;
-    }catch(e){
-      console.warn('Place.fetchFields (SDK JS) a échoué, fallback REST v1 →', e);
+        sessionToken = null; // nouvelle session pour la prochaine recherche
+        const box = document.getElementById('placesResults');
+        if (box) box.style.display = 'none';
+        placesStatus('Lieu sélectionné ✔︎ (champs préremplis).');
+      }catch(e){
+        console.error('Détails du lieu — erreur SDK JS', e);
+        placesStatus('Impossible de récupérer les détails du lieu (SDK JS).', 'err');
+      }
     }
 
-    // --- Tentative 2 : REST v1 (fallback robuste) ---
-    if(!rempli){
-      const data = await fetchPlaceDetailsViaREST(idOrName);
-      const dn   = data.displayName?.text || '';
-      const addr = data.formattedAddress || '';
-      const lat  = data.location?.latitude;
-      const lng  = data.location?.longitude;
-      const web  = data.websiteUri || data.googleMapsUri || '';
-
-      if(dn)   $('#magasin').value = dn;
-      if(addr) $('#adresse').value = addr;
-      if(lat!=null && lng!=null) $('#coords').value = `${lat}, ${lng}`;
-      if(web)  $('#url').value = web;
-    }
-
-    // Fin de session + UI
-    sessionToken = null; // nouvelle session pour la prochaine recherche
-    const list = document.getElementById('placesResults'); if(list) list.style.display='none';
-    placesStatus('Lieu sélectionné ✔︎ (champs préremplis).');
-  }catch(e){
-    console.error('Détails du lieu — erreur', e);
-    placesStatus('Impossible de récupérer les détails du lieu (voir console).','err');
-  }
-}
-
-
-    // -------------------------------------------------
-    // 3) Génération / Webhook
-    // -------------------------------------------------
+    // --- 3) Génération / Webhook ---
     let lastPayloadStr=null, lastPayloadObj=null;
     const DEFAULT_WEBHOOK='https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2';
     function randomHex(len=32){
@@ -369,7 +288,7 @@ async function onPickSuggestion(sug){
       const i=$('#webhook'); if(!i) return;
       let base=(i.value||'').trim();
       if(!base){ base = prompt('Base du webhook n8n','https://n8n.wondermi.agency/webhook/store-profile') || '' }
-      base = trimTrailingSlashes(base);
+      base = base.replace(/\/+$/,'');
       const secret = randomHex(32);
       const url = base + '/' + secret;
       i.value = url;
@@ -384,33 +303,41 @@ async function onPickSuggestion(sug){
       }
     })();
 
+    function parseLatLng(s){
+      if(!s) return null;
+      let parts = s.includes(',') ? s.split(',') : (s.includes(';') ? s.split(';') : s.trim().split(' ').filter(Boolean));
+      if(parts.length!==2) return null;
+      const lat=parseFloat(String(parts[0]).replace(',','.'));
+      const lng=parseFloat(String(parts[1]).replace(',','.'));
+      if(Number.isNaN(lat)||Number.isNaN(lng)) return null;
+      if(lat<-90||lat>90||lng<-180||lng>180) return null;
+      return {lat,lng};
+    }
     function validateInputs(){
-      const sel = $('#enseigneSelect');
-      const enseigne = (sel && sel.options[sel.selectedIndex]?.text || '').trim();
-      const operation = $('#operation').value || 'autre';
-      const magasin = $('#magasin').value.trim();
-      const adresse = $('#adresse').value.trim();
-      const url = $('#url').value.trim();
-      const coords = parseLatLng($('#coords').value.trim());
-      const errs = [];
+      const enseigneSel=$('#enseigneSelect'); const enseigne=(enseigneSel && enseigneSel.options[enseigneSel.selectedIndex]?.text || '').trim();
+      const operation=$('#operation').value||'autre';
+      const magasin=$('#magasin').value.trim();
+      const adresse=$('#adresse').value.trim();
+      const url=$('#url').value.trim();
+      const coords=parseLatLng($('#coords').value.trim());
+      const errs=[];
       if(!enseigne) errs.push('• Nom de l’enseigne requis');
       if(!magasin) errs.push('• Nom du magasin requis');
       if(!adresse) errs.push('• Adresse postale requise');
       if(!/^https?:\/\//i.test(url)) errs.push('• URL de la page magasin invalide (http/https)');
       if(!coords) errs.push('• Coordonnées GPS invalides (lat, lng)');
-      return { ok: errs.length===0, errs, values:{ enseigne, operation, magasin, adresse, url, lat: coords?.lat, lng: coords?.lng } };
+      return { ok:errs.length===0, errs, values:{ enseigne, operation, magasin, adresse, url, lat:coords?.lat, lng:coords?.lng } }
     }
     function defaultSource(url){ return { type:'open_web', name:'Site enseigne', url, collected_at:new Date().toISOString() } }
     function buildJSON(v){
-      const src = defaultSource(v.url);
-      const now = new Date().toISOString();
+      const src=defaultSource(v.url); const now=new Date().toISOString();
       return {
         store_id: (crypto?.randomUUID ? crypto.randomUUID() : (Date.now()+'-'+Math.random().toString(16).slice(2))),
         enseigne: v.enseigne,
         store_name: v.magasin,
         last_updated: now,
         goal: 'hybride',
-        operation_type: v.operation || 'autre',
+        operation_type: v.operation||'autre',
         axes: {
           adresse_contexte: {
             adresse_postale: { value: v.adresse, sources: [src] },
@@ -423,73 +350,52 @@ async function onPickSuggestion(sug){
             ]
           }
         }
-      };
+      }
     }
-    function download(filename, text){
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));
-      a.download=filename; a.click(); URL.revokeObjectURL(a.href);
-    }
+    function download(filename, text){ const blob=new Blob([text],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href) }
     async function postToWebhook(){
-      const webhook = ($('#webhook')?.value || '').trim();
-      if(!/^https?:\/\//i.test(webhook)){ alert('URL du webhook n8n invalide'); return; }
-      let payloadStr = lastPayloadStr;
+      const webhook=($('#webhook')?.value||'').trim(); if(!/^https?:\/\//i.test(webhook)){ alert('URL du webhook n8n invalide'); return }
+      let payloadStr=lastPayloadStr;
       if(!payloadStr){
         const r=validateInputs();
-        if(!r.ok){ alert('Corrigez les erreurs puis regénérez.'); return; }
+        if(!r.ok){ alert('Corrigez les erreurs puis regénérez.'); return }
         const obj=buildJSON(r.values);
-        payloadStr = JSON.stringify(obj);
-        lastPayloadObj = obj;
-        lastPayloadStr = payloadStr;
+        payloadStr=JSON.stringify(obj);
+        lastPayloadObj=obj;
+        lastPayloadStr=payloadStr;
       }
       try{
-        try{ localStorage.setItem('webhook_url', webhook) }catch{}
-        const resp = await fetch(webhook,{ method:'POST', headers:{'content-type':'application/json'}, body:payloadStr, mode:'cors', credentials:'omit' });
-        if(resp.ok){ alert('Webhook envoyé ✅'); return; }
-        console.warn('CORS/HTTP non OK, fallback Beacon :', resp.status, await resp.text().catch(()=>'')); // fallback ci-dessous
-      }catch(err){
-        console.warn('fetch échoué, fallback Beacon :', err);
-      }
-      try{
-        const ok = navigator.sendBeacon(webhook, new Blob([payloadStr], {type:'text/plain;charset=UTF-8'}));
-        alert(ok ? 'Webhook envoyé (Beacon) ✅' : 'Échec d’envoi (Beacon)');
-      }catch(e){ alert('Échec total : ' + (e?.message || e)); }
+        try{ localStorage.setItem('webhook_url',webhook) }catch{}
+        const resp=await fetch(webhook,{ method:'POST', headers:{'content-type':'application/json'}, body:payloadStr, mode:'cors', credentials:'omit' });
+        if(resp.ok){ alert('Webhook envoyé ✅'); return } else { console.warn('CORS/HTTP non OK, fallback Beacon :', resp.status, await resp.text().catch(()=>'')) }
+      }catch(err){ console.warn('fetch échoué, fallback Beacon :', err) }
+      try{ const ok=navigator.sendBeacon(webhook,new Blob([payloadStr],{type:'text/plain;charset=UTF-8'})); alert(ok?'Webhook envoyé (Beacon) ✅':'Échec d’envoi (Beacon)') }catch(e){ alert('Échec total : '+(e?.message||e)) }
     }
     $('#btn-gen').addEventListener('click', ()=>{
-      const r = validateInputs();
-      const $err = $('#errors');
-      if(!r.ok){
-        $err.style.display='block';
-        $err.innerText = r.errs.join('\n');
-        $('#preview').textContent='(corrigez les erreurs puis regénérez)';
-        $('#btn-copy').disabled = true; $('#btn-dl').disabled = true; $('#btn-post').disabled = true;
-        return;
-      }
+      const r=validateInputs(); const $err=$('#errors');
+      if(!r.ok){ $err.style.display='block'; $err.innerText=r.errs.join('\n'); $('#preview').textContent='(corrigez les erreurs puis regénérez)'; $('#btn-copy').disabled=true; $('#btn-dl').disabled=true; $('#btn-post').disabled=true; return }
       $err.style.display='none';
-      const json = buildJSON(r.values);
-      const pretty = JSON.stringify(json,null,2);
-      lastPayloadObj = json; lastPayloadStr = pretty;
-      $('#preview').textContent = pretty;
-      $('#btn-copy').disabled = false; $('#btn-dl').disabled = false; $('#btn-post').disabled = false;
-      $('#btn-copy').onclick = async ()=>{ try{ await navigator.clipboard.writeText(pretty); alert('JSON copié'); }catch{ alert('Copie impossible'); } };
-      $('#btn-dl').onclick = ()=> download(`store_profile_${joinWithUnderscores(r.values.enseigne)}.json`, pretty);
-      $('#btn-post').onclick = postToWebhook;
+      const json=buildJSON(r.values); const pretty=JSON.stringify(json,null,2);
+      lastPayloadObj=json; lastPayloadStr=pretty;
+      $('#preview').textContent=pretty;
+      $('#btn-copy').disabled=false; $('#btn-dl').disabled=false; $('#btn-post').disabled=false;
+      $('#btn-copy').onclick=async()=>{ try{ await navigator.clipboard.writeText(pretty); alert('JSON copié') }catch{ alert('Copie impossible') } }
+      $('#btn-dl').onclick=()=>download(`store_profile_${r.values.enseigne.replace(/\s+/g,'_')}.json`, pretty);
+      $('#btn-post').onclick=postToWebhook;
     });
 
-    // -------------------------------------------------
-    // 4) Résultats /profiles/ — liste vers viewer.html
-    // -------------------------------------------------
+    // --- 4) Résultats /profiles/ ---
     async function loadRecentProfiles(){
       const box=$('#resultsBox'); box.innerHTML=''; box.style.display='none';
       try{
         const r=await fetch(GH_API('profiles'), {cache:'no-store'}); if(!r.ok) throw new Error('GitHub API '+r.status);
-        const items=(await r.json()).filter(it=>/\.json$/i.test(it.name));
+        const items=(await r.json()).filter(it=>/\\.json$/i.test(it.name));
         const first=items.slice(0,25);
         const rows=[];
         for(const it of first){
           try{
             const j=await fetch(it.download_url,{cache:'no-store'}).then(r=>r.json());
-            const id=j.store_id || it.name.replace(/\.json$/,'');
+            const id=j.store_id || it.name.replace(/\\.json$/,'');
             const t=j.last_updated || '';
             const enseigne=j.enseigne || '';
             const sn=j.store_name || '';
@@ -501,7 +407,7 @@ async function onPickSuggestion(sug){
         box.innerHTML = rows.map(r=>{
           const vId = encodeURIComponent(r.id);
           const hrefId = `viewer.html?id=${vId}`;
-          const hrefPath = `viewer.html?json=${encodeURIComponent('profiles/'+r.file)}&md=${encodeURIComponent('profiles/'+r.file.replace(/\.json$/,'.md'))}`;
+          const hrefPath = `viewer.html?json=${encodeURIComponent('profiles/'+r.file)}&md=${encodeURIComponent('profiles/'+r.file.replace(/\\.json$/,'.md'))}`;
           const title = (r.store?`${r.store} — `:'') + (r.enseigne||'');
           const when = r.when ? new Date(r.when).toLocaleString('fr-FR') : '—';
           return `<div class="item">
@@ -522,9 +428,7 @@ async function onPickSuggestion(sug){
       }
     }
 
-    // -------------------------------------------------
-    // Boot
-    // -------------------------------------------------
+    // --- 5) Boot ---
     document.addEventListener('DOMContentLoaded', ()=>{
       loadEnseignes();
       loadRecentProfiles();
@@ -537,7 +441,7 @@ async function onPickSuggestion(sug){
     });
   </script>
 
-  <!-- Google Maps JS + Places (nouvelle API) -->
+  <!-- Google Maps JS + Places (nouvelle API, SDK uniquement) -->
   <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCy5VImTf6SPltnHqVetqh5GPCp-o_JmFo&libraries=places&language=fr&region=FR&loading=async">
   </script>

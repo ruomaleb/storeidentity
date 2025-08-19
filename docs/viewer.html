@@ -1,376 +1,210 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Profil Magasin — Saisie minimale (UX guidée)</title>
-  <style>
-    :root{
-      --bg:#ffffff;--surface:#ffffff;--surface-alt:#f5f5f7;--text:#1d1d1f;--muted:#6e6e73;--border:#e5e5ea;--accent:#0a84ff;--ok:#34c759;--warn:#ffd60a;--err:#ff3b30
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    .container{max-width:980px;margin:0 auto;padding:24px}
-    header{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border)}
-    h1{font-size:20px;margin:0 0 4px}
-    .sub{color:var(--muted);font-size:12px;margin:0}
-    section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:16px}
-    .grid{display:grid;gap:12px}
-    .cols-2{grid-template-columns:1fr 1fr}
-    .cols-3{grid-template-columns:1fr 1fr 1fr}
-    label{display:block;font-weight:600;margin-bottom:6px}
-    .help{margin-top:6px;color:var(--muted);font-size:12px}
-    input,textarea,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #d2d2d7;background:#fff;color:var(--text);font-size:14px}
-    input:focus,textarea:focus,select:focus{outline:none;box-shadow:0 0 0 3px rgba(10,132,255,.25);border-color:var(--accent)}
-    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .btn{padding:10px 14px;border-radius:12px;border:1px solid #d2d2d7;background:var(--surface-alt);color:var(--text);cursor:pointer}
-    .btn:hover{background:#ededf1}
-    .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-    .btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
-    .btn.warn{background:var(--warn);border-color:var(--warn);color:#111}
-    .btn.ghost{background:#fff}
-    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface-alt);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--text)}
-    .err{color:var(--err)}
-    pre{background:#0a0f1a;color:#e6eefc;border:1px solid #1f2a44;border-radius:12px;padding:12px;overflow:auto;max-height:420px}
-    .divider{height:1px;background:var(--border);margin:12px 0}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Viewer — Profil magasin</title>
+<style>
+  :root{--bg:#ffffff;--text:#1d1d1f;--muted:#6e6e73;--line:#e5e5ea;--accent:#0a84ff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto}
+  .container{max-width:1100px;margin:0 auto;padding:20px}
+  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);z-index:10}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 8px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  input{padding:10px 12px;border:1px solid var(--line);border-radius:10px;min-width:260px}
+  button{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  section{margin-top:14px}
+  .grid{display:grid;gap:14px}
+  .cols-2{grid-template-columns:1fr 1fr}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+  .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;background:#f5f5f7;border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+  .muted{color:var(--muted)}
+  .kv{display:grid;grid-template-columns:170px 1fr;gap:6px 10px}
+  pre{background:#0a0f1a;color:#e6eefc;border-radius:12px;padding:12px;overflow:auto;max-height:420px}
+  .err{color:#c1121f}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+</style>
 </head>
 <body>
-  <header>
-    <div class="container" style="padding:12px 24px;">
-      <h1>Profil Magasin — saisie minimale</h1>
-      <p class="sub">Fournissez 5 informations clés. Le JSON généré suit le schéma « valeur + provenance » défini précédemment (axes → adresse_contexte, etc.).</p>
+<header>
+  <div class="container">
+    <h1>Viewer — Profil magasin</h1>
+    <p class="sub">Charge un profil depuis le dépôt GitHub <span class="kbd" id="repoTag"></span></p>
+    <div class="row" style="margin:10px 0 14px">
+      <input id="inpId" placeholder="ID (ex. b7a9b515-aae7-4545-b37d-c902899b4fae)" />
+      <button id="btnById" class="primary">Charger par ID</button>
+      <input id="inpJson" placeholder="Chemin JSON (ex. profiles/<id>.json)" />
+      <input id="inpMd" placeholder="Chemin MD (ex. profiles/<id>.md) — facultatif" />
+      <button id="btnByPath">Charger par chemins</button>
+      <button id="btnShare">Copier le lien viewer</button>
+      <span class="muted" id="status"></span>
     </div>
-  </header>
+  </div>
+</header>
 
-  <main class="container">
-    <section>
-      <div class="row" style="justify-content:space-between;margin-bottom:8px">
-        <strong>Étape 1 — Saisies indispensables</strong>
-        <span class="pill">Entrées : 5 champs</span>
+<main class="container">
+  <section class="grid cols-2">
+    <div class="card">
+      <h3 style="margin-top:0">Résumé</h3>
+      <div id="resume" class="kv">
+        <div class="muted">Statut</div><div id="stat">—</div>
       </div>
-      <div class="grid cols-2">
-        <div>
-          <label for="enseigneSelect">Nom de l’enseigne</label>
-          <select id="enseigneSelect"></select>
-          <div class="help">Liste alimentée depuis <code>/enseignes/*.json</code> du dépôt. La valeur utilisée est le « nom » présent dans chaque fichier JSON.</div>
-        </div>
-        <div>
-          <label for="magasin">Nom du magasin</label>
-          <input id="magasin" placeholder="Ex : Intersport Bayonne – Ametzondo" maxlength="120" />
-          <div class="help">Renseigne l’attribut <code>store_name</code> (champ additionnel) et les titres des références.</div>
-        </div>
-        <div class="cols-2" style="grid-column:1/-1;display:grid;gap:12px;grid-template-columns:1fr 1fr">
-          <div>
-            <label for="adresse">Adresse postale du magasin</label>
-            <input id="adresse" placeholder="Numéro, voie, CP Ville — Ex : 12 rue du Stade, 64100 Bayonne" maxlength="200" />
-            <div class="help">Mappe <code>axes.adresse_contexte.adresse_postale.value</code>.</div>
-          </div>
-          <div>
-            <label for="url">Page web du magasin (site de l’enseigne)</label>
-            <input id="url" placeholder="https://www.enseigne.fr/magasins/ville…" />
-            <div class="help">Enregistrée sous <code>axes.adresse_contexte.references_ouvertes[0].url</code> avec <em>page_type</em> : <code>page_magasin_enseigne</code>.</div>
-          </div>
-        </div>
-        <div style="grid-column:1/-1">
-          <label for="coords">Coordonnées GPS — latitude, longitude (° décimaux)</label>
-          <input id="coords" placeholder="48.11552771157894, -1.6767288891938714" />
-          <div class="help">Format recommandé : <code>lat, lng</code> (WGS84 décimal). Exemple : <code>48.11552771157894, -1.6767288891938714</code>. Sont aussi acceptés : « lat lng », « lat; lng », ou un collage depuis Google Maps.</div>
-        </div>
-        </div>
-      </div>
-      <div style="grid-column:1/-1">
-        <label for="webhook">URL du webhook n8n (POST JSON)</label>
-        <input id="webhook" placeholder="https://votre-n8n.tld/webhook/store-profile" value="https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2" />
-        <div class="help">Le domaine de cette page doit autoriser les requêtes depuis votre origine (CORS). Assurez-vous que le serveur n8n renvoie les en-têtes <code>Access-Control-Allow-Origin</code> et <code>Access-Control-Allow-Headers: content-type</code> pour <code>https://ruomaleb.github.io</code> (ou votre domaine).</div>
-        <div class="row" style="margin-top:6px">
-          <button class="btn" id="btn-gen-secret" type="button">Générer un secret</button>
-          <span class="help">Construit une URL du type <code>…/webhook/store-profile/&lt;secret&gt;</code>. En prod, remplacez <code>/webhook-test/</code> par <code>/webhook/</code> une fois votre workflow activé.</span>
-        </div>
-      </div>
-      <div id="errors" class="help err" style="margin-top:8px;display:none"></div>
-      <div class="row" style="margin-top:12px">
-        <button class="btn primary" id="btn-gen">Valider & générer le JSON</button>
-        <button class="btn" id="btn-copy" disabled>Copier</button>
-        <button class="btn warn" id="btn-dl" disabled>Télécharger JSON</button>
-        <button class="btn ok" id="btn-post" disabled>Envoyer au webhook n8n</button>
-        <span class="help">Le JSON inclut la <strong>provenance</strong> : <code>type</code>=<em>open_web</em>, <code>name</code>=« Site enseigne », <code>url</code>=page magasin, <code>collected_at</code>=ISO 8601.</span>
-      </div>
-    </section>
+      <div style="margin-top:10px" id="links"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Markdown</h3>
+      <div id="md" class="muted">Aucun contenu markdown (fichier .md non trouvé).</div>
+    </div>
+  </section>
 
-    <section>
-      <strong>Étape 2 — Prévisualisation</strong>
-      <div class="divider"></div>
-      <pre id="preview">(générez le JSON pour prévisualiser ici)</pre>
-    </section>
+  <section class="card">
+    <h3 style="margin-top:0">JSON brut</h3>
+    <pre id="json">(en attente de chargement)</pre>
+  </section>
+</main>
 
-    <section>
-      <strong>Rappel de mappage vers le schéma</strong>
-      <div class="divider"></div>
-      <ul style="margin:0 0 8px 16px;line-height:1.6">
-        <li><code>enseigne</code> ⇐ Nom de l’enseigne</li>
-        <li><code>store_name</code> (champ additionnel, autorisé) ⇐ Nom du magasin</li>
-        <li><code>axes.adresse_contexte.adresse_postale.value</code> ⇐ Adresse postale</li>
-        <li><code>axes.adresse_contexte.coordonnees.latitude.value</code> / <code>longitude.value</code> ⇐ Coordonnées GPS</li>
-        <li><code>axes.adresse_contexte.references_ouvertes[]</code> ⇐ Page web (type : <code>page_magasin_enseigne</code>)</li>
-      </ul>
-      <p class="help">Les autres attributs (AAV, type de zone, notoriété, services, etc.) pourront être complétés ensuite via l’interface étendue ou des connecteurs/API.</p>
-    </section>
-  </main>
+<!-- Rendu Markdown via marked (léger) -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" integrity="sha384-mh5wq2l8JHn3n5h2TgH8QpZ9d6WcM1I1m0r6JqW8GJq4y5VQWzj0wR8R3Cq7bZ6F" crossorigin="anonymous"></script>
+<script>
+(function(){
+  // ------- Config dépôt -------
+  const OWNER='ruomaleb', REPO='storeidentity', BRANCH='main';
+  document.getElementById('repoTag').textContent = `${OWNER}/${REPO}@${BRANCH}`;
 
-  <script>
-    const $ = sel => document.querySelector(sel)
+  // ------- Utilitaires -------
+  const $ = s => document.querySelector(s);
+  const status = (msg, type='info') => { const el=$('#status'); if(!el) return; el.textContent=msg; el.style.color=(type==='err'?'#c1121f':'#6e6e73'); }
+  const q = new URLSearchParams(location.search);
+  const toRaw = (path) => {
+    const clean = (path||'').replace(/^\/+/,'');
+    return `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${clean}`;
+  };
+  const ghBlob = (path) => `https://github.com/${OWNER}/${REPO}/blob/${BRANCH}/${path.replace(/^\/+/,'')}`;
 
-    // ----- Enseignes depuis le dépôt GitHub -----
-    const OWNER='ruomaleb', REPO='storeidentity', BRANCH='main';
-    const API = (p)=>`https://api.github.com/repos/${OWNER}/${REPO}/contents/${p}?ref=${BRANCH}`;
+  async function fetchText(url){
+    const r = await fetch(url, {cache:'no-store'});
+    if(!r.ok) throw new Error(`HTTP ${r.status} — ${url}`);
+    return r.text();
+  }
+  async function fetchJSON(url){
+    const t = await fetchText(url);
+    try { return JSON.parse(t); } catch(e){ throw new Error('JSON invalide'); }
+  }
 
-    async function loadEnseignes(){
-      const sel = document.getElementById('enseigneSelect');
-      if(!sel) return;
-      try{
-        const r = await fetch(API('enseignes'));
-        if(!r.ok) throw new Error('GitHub API '+r.status);
-        const items = await r.json();
-        const jsons = items.filter(it=>/\\.json$/i.test(it.name));
-        const out = [];
-        for(const it of jsons){
-          try{
-            const jr = await fetch(it.download_url);
-            if(!jr.ok) continue;
-            const j = await jr.json();
-            const slug = j.slug || it.name.replace(/\\.json$/,'');
-            const nom  = j.nom  || slug;
-            out.push({slug, nom});
-          }catch(e){}
-        }
-        out.sort((a,b)=>a.nom.localeCompare(b.nom,'fr',{sensitivity:'base'}));
-        sel.innerHTML = '<option value=\"\">— choisir —</option>' + out.map(e=>`<option value=\"${e.slug}\">${e.nom}</option>`).join('');
-      }catch(e){
-        // Fallback minimal si l’API GitHub est limitée
-        sel.innerHTML = '<option value=\"\">— choisir —</option><option value=\"Super U\">Super U</option><option value=\"Intersport\">Intersport</option><option value=\"E.Leclerc\">E.Leclerc</option>';
+  function renderResume(obj){
+    const R = $('#resume'); R.innerHTML = '';
+    const rows = (k,v) => `<div class="muted">${k}</div><div>${v ?? '—'}</div>`;
+    const addr = obj?.axes?.adresse_contexte?.adresse_postale?.value || '—';
+    const lat  = obj?.axes?.adresse_contexte?.coordonnees?.latitude?.value;
+    const lng  = obj?.axes?.adresse_contexte?.coordonnees?.longitude?.value;
+    const maps = (lat!=null && lng!=null) ? `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank">Google Maps</a>` : '—';
+    const refs = (obj?.axes?.adresse_contexte?.references_ouvertes||[]).map(x=> {
+      const title = x?.title || x?.url || 'référence';
+      const url = x?.url || '#';
+      return `<li><a href="${url}" target="_blank">${title}</a> <span class="muted">(${x?.page_type||'réf'})</span></li>`;
+    }).join('') || '<li class="muted">aucune</li>';
+
+    R.innerHTML = [
+      rows('Enseigne', obj?.enseigne),
+      rows('Magasin', obj?.store_name || obj?.magasin || '—'),
+      rows('Adresse', addr),
+      rows('Coordonnées', (lat!=null&&lng!=null)? `${lat}, ${lng}` : '—'),
+      rows('Maps', maps),
+      rows('Objectif', obj?.goal || '—'),
+      rows('MAJ', obj?.last_updated || '—'),
+      `<div class="muted">Références ouvertes</div><div><ul style="margin:6px 0 0 18px">${refs}</ul></div>`
+    ].join('');
+  }
+
+  function renderJSON(obj){
+    $('#json').textContent = JSON.stringify(obj, null, 2);
+  }
+
+  function renderLinks(jsonPath, mdPath){
+    const el = $('#links');
+    const parts = [];
+    if(jsonPath) parts.push(`JSON : <a href="${ghBlob(jsonPath)}" target="_blank">ouvrir sur GitHub</a>`);
+    if(mdPath)   parts.push(`MD : <a href="${ghBlob(mdPath)}" target="_blank">ouvrir sur GitHub</a>`);
+    el.innerHTML = parts.join(' · ') || '<span class="muted">Aucun lien disponible.</span>';
+  }
+
+  async function load({id, jsonPath, mdPath}){
+    try{
+      status('Chargement…');
+
+      // Déduire chemins si ID fourni
+      if(id){
+        jsonPath = jsonPath || `profiles/${id}.json`;
+        mdPath   = mdPath   || `profiles/${id}.md`;
       }
-    }
 
-    // Mémoire du dernier JSON généré
-    let lastPayloadStr = null; // JSON sérialisé
-    let lastPayloadObj = null; // Objet JSON
+      // Charger JSON
+      const jsonUrl = toRaw(jsonPath);
+      const obj = await fetchJSON(jsonUrl);
+      renderResume(obj);
+      renderJSON(obj);
+      renderLinks(jsonPath, mdPath);
+      status('JSON chargé', 'info');
 
-    // Générateur simple de UUID v4 (pour store_id)
-    function uuidv4(){
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-        const r = Math.random()*16|0, v = c === 'x' ? r : (r & 0x3 | 0x8)
-        return v.toString(16)
-      })
-    }
-
-    const DEFAULT_WEBHOOK = 'https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2';
-
-    function randomHex(len=32){
-      const out = new Uint8Array(len/2)
-      if(window.crypto && window.crypto.getRandomValues){
-        window.crypto.getRandomValues(out)
-      } else {
-        for(let i=0;i<out.length;i++) out[i] = Math.floor(Math.random()*256)
-      }
-      return Array.from(out, b => b.toString(16).padStart(2,'0')).join('')
-    }
-
-    function generateWebhookSecret(){
-      const input = $('#webhook'); if(!input) return;
-      let base = (input.value || '').trim();
-      if(!base){
-        base = prompt('Base du webhook n8n (ex: https://n8n.wondermi.agency/webhook/store-profile)', 'https://n8n.wondermi.agency/webhook/store-profile') || ''
-      }
-      base = base.trim().replace(/\\/+$/,'')
-      const secret = randomHex(32)
-      const url = base + '/' + secret
-      input.value = url
-      try { localStorage.setItem('webhook_url', url) } catch(e){}
-    }
-
-    // Préremplissage initial + binding du bouton secret + chargement des enseignes
-    ;(function(){
-      const i = $('#webhook')
-      if(i){
+      // Charger MD (silencieux si absent)
+      if(mdPath){
         try{
-          const saved = localStorage.getItem('webhook_url')
-          i.value = saved || i.value || DEFAULT_WEBHOOK
-        }catch(e){ if(!i.value) i.value = DEFAULT_WEBHOOK }
-        const b = document.querySelector('#btn-gen-secret')
-        if(b) b.addEventListener('click', generateWebhookSecret)
-      }
-      // charge la liste d’enseignes
-      loadEnseignes();
-    })()
-
-    function validateInputs(){
-      const selEnseigne = $('#enseigneSelect');
-      const enseigne = (selEnseigne && selEnseigne.options[selEnseigne.selectedIndex]?.text || '').trim();
-      const magasin  = $('#magasin').value.trim()
-      const adresse  = $('#adresse').value.trim()
-      const url      = $('#url').value.trim()
-      const coordsRaw = $('#coords').value.trim()
-
-      const errs = []
-      if(!enseigne) errs.push('• Nom de l\'enseigne requis')
-      if(!magasin) errs.push('• Nom du magasin requis')
-      if(!adresse) errs.push('• Adresse postale requise')
-
-      const urlOk = (url.startsWith('http://') || url.startsWith('https://'))
-      if(!url || !urlOk) errs.push('• URL de la page magasin invalide (doit commencer par http/https)')
-
-      // Parsing des coordonnées "lat, lng" (ou variantes)
-      let latNum, lngNum
-      if(!coordsRaw){
-        errs.push('• Coordonnées GPS requises (format : lat, lng)')
+          const md = await fetchText(toRaw(mdPath));
+          $('#md').innerHTML = marked.parse(md);
+        }catch(e){
+          $('#md').innerHTML = '<span class="muted">Aucun contenu markdown (fichier .md non trouvé).</span>';
+        }
       } else {
-        const trySplit = (s) => {
-          let p = s.split(','); if(p.length===2) return p
-          p = s.split(';'); if(p.length===2) return p
-          p = s.trim().split(' '); p = p.filter(Boolean); if(p.length===2) return p
-          return null
-        }
-        const parts = trySplit(coordsRaw)
-        if(!parts){
-          errs.push('• Coordonnées GPS invalides. Exemple attendu : 48.11552771157894, -1.6767288891938714')
-        } else {
-          latNum = parseFloat((parts[0]||'').replace(',', '.'))
-          lngNum = parseFloat((parts[1]||'').replace(',', '.'))
-          if(Number.isNaN(latNum) || latNum < -90 || latNum > 90) errs.push('• Latitude invalide (–90 à 90)')
-          if(Number.isNaN(lngNum) || lngNum < -180 || lngNum > 180) errs.push('• Longitude invalide (–180 à 180)')
-        }
+        $('#md').innerHTML = '<span class="muted">Aucun contenu markdown (non spécifié).</span>';
       }
-
-      return { ok: errs.length === 0, errs, values: { enseigne, magasin, adresse, url, lat: latNum, lng: lngNum } }
+    }catch(e){
+      console.error(e);
+      status('Erreur : ' + e.message, 'err');
+      $('#json').textContent = '(échec de chargement)';
+      $('#md').innerHTML = '<span class="err">Impossible de charger le contenu.</span>';
+      $('#resume').innerHTML = '<div class="muted">—</div>';
     }
+  }
 
-    function defaultSource(url){
-      return { type: 'open_web', name: 'Site enseigne', url, collected_at: new Date().toISOString() }
-    }
+  // ------- Interactions -------
+  $('#btnById').addEventListener('click', ()=>{
+    const id = $('#inpId').value.trim();
+    if(!id) return status('Renseignez un ID', 'err');
+    const url = new URL(location.href);
+    url.search = '?id=' + encodeURIComponent(id);
+    history.replaceState(null,'',url);
+    load({id});
+  });
 
-    function buildJSON(vals){
-      const src = defaultSource(vals.url)
-      const now = new Date().toISOString()
-      return {
-        store_id: uuidv4(),
-        enseigne: vals.enseigne,
-        store_name: vals.magasin, // champ additionnel
-        last_updated: now,
-        goal: 'hybride',
-        axes: {
-          adresse_contexte: {
-            adresse_postale: { value: vals.adresse, sources: [src] },
-            coordonnees: {
-              latitude:  { value: vals.lat, sources: [src] },
-              longitude: { value: vals.lng, sources: [src] }
-            },
-            references_ouvertes: [
-              {
-                page_type: 'page_magasin_enseigne',
-                title: `${vals.magasin} — ${vals.enseigne}`,
-                language: 'fr',
-                url: vals.url,
-                source: src,
-                collected_at: now
-              }
-            ]
-          }
-        }
-      }
-    }
+  $('#btnByPath').addEventListener('click', ()=>{
+    const j = $('#inpJson').value.trim();
+    if(!j) return status('Renseignez au minimum le chemin JSON', 'err');
+    const m = $('#inpMd').value.trim();
+    const url = new URL(location.href);
+    url.search = '?json=' + encodeURIComponent(j) + (m ? '&md=' + encodeURIComponent(m) : '');
+    history.replaceState(null,'',url);
+    load({jsonPath:j, mdPath:m||null});
+  });
 
-    function download(filename, text){
-      const blob = new Blob([text], {type: 'application/json'})
-      const a = document.createElement('a')
-      a.href = URL.createObjectURL(blob)
-      a.download = filename
-      a.click()
-      URL.revokeObjectURL(a.href)
-    }
+  $('#btnShare').addEventListener('click', async ()=>{
+    try{
+      await navigator.clipboard.writeText(location.href);
+      status('Lien copié dans le presse-papiers');
+    }catch{ status('Impossible de copier le lien', 'err') }
+  });
 
-    // Envoi du JSON au webhook n8n
-    async function postToWebhook(){
-      const webhook = ($('#webhook')?.value || '').trim()
-      if(!/^https?:\/\//i.test(webhook)){
-        alert('URL du webhook n8n invalide')
-        return
-      }
-
-      // 1) Préparer le payload (JSON string)
-      let payloadStr = lastPayloadStr
-      if(!payloadStr){
-        const res = validateInputs()
-        if(!res.ok){ alert("Données incomplètes : générez d'abord un JSON valide."); return }
-        const obj = buildJSON(res.values)
-        payloadStr = JSON.stringify(obj)
-        lastPayloadObj = obj
-        lastPayloadStr = payloadStr
-      }
-
-      // 2) Tentative standard (CORS) en application/json
-      try{
-        try{ localStorage.setItem('webhook_url', webhook); } catch(e){}
-        const resp = await fetch(webhook, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: payloadStr,
-          mode: 'cors',
-          credentials: 'omit'
-        })
-        const txt = await resp.text().catch(()=> '')
-        if(resp.ok){
-          alert('Webhook envoyé ✅')
-          return
-        } else {
-          // Si le serveur ne renvoie pas CORS/200, on tente le fallback Beacon
-          console.warn('CORS/HTTP non OK, fallback Beacon :', resp.status, txt)
-        }
-      }catch(err){
-        // TypeError: Failed to fetch (préflight/CORS/TLS). On tente le fallback Beacon.
-        console.warn('fetch JSON échoué, fallback Beacon :', err)
-      }
-
-      // 3) Fallback sans préflight : navigator.sendBeacon (text/plain)
-      try{
-        const blob = new Blob([payloadStr], { type: 'text/plain;charset=UTF-8' })
-        const sent = navigator.sendBeacon(webhook, blob)
-        if(sent){
-          alert('Webhook envoyé en mode compatible (Beacon). Réponse non lisible côté navigateur, vérifiez n8n → Executions.')
-        } else {
-          alert("Échec d'envoi (Beacon)")
-        }
-      } catch(e){
-        alert('Échec total de l\'envoi : ' + (e?.message || e))
-      }
-    }
-
-    $('#btn-gen').addEventListener('click', () => {
-      const res = validateInputs()
-      const $err = $('#errors')
-      if(!res.ok){
-        $err.style.display = 'block'
-        $err.innerText = res.errs.join('\n')
-        $('#preview').textContent = '(corrigez les erreurs puis regénérez)'
-        $('#btn-copy').disabled = true
-        $('#btn-dl').disabled = true
-        $('#btn-post').disabled = true
-        return
-      }
-      $err.style.display = 'none'
-      const json = buildJSON(res.values)
-      const pretty = JSON.stringify(json, null, 2)
-      lastPayloadObj = json
-      lastPayloadStr = pretty
-      $('#btn-post').disabled = false
-      $('#btn-post').onclick = postToWebhook
-      $('#preview').textContent = pretty
-      $('#btn-copy').disabled = false
-      $('#btn-dl').disabled = false
-      $('#btn-dl').onclick = () => download(`store_profile_${res.values.enseigne.replace(/\\s+/g,'_')}.json`, pretty)
-      $('#btn-copy').onclick = async () => { try{ await navigator.clipboard.writeText(pretty); alert('JSON copié dans le presse-papiers') } catch(e){ alert('Copie impossible : permissions navigateur') } }
-    })
-  </script>
+  // ------- Auto-load via query string -------
+  const id   = q.get('id');
+  const jpth = q.get('json');
+  const mpth = q.get('md');
+  if(id){ $('#inpId').value = id; load({id}); }
+  else if(jpth){ $('#inpJson').value=jpth; if(mpth) $('#inpMd').value=mpth; load({jsonPath:jpth, mdPath:mpth||null}); }
+  else { status('Indiquez un ID ou des chemins de fichiers pour commencer.'); }
+})();
+</script>
 </body>
 </html>

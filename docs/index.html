@@ -6,46 +6,41 @@
   <title>Profil Magasin — Saisie minimale (UX guidée)</title>
   <style>
     :root{
-      --bg:#0b1320;--card:#121a2b;--muted:#7c8aa5;--text:#e6eefc;--accent:#4f8cff;--ok:#10b981;--warn:#f59e0b;--err:#ef4444
+      --bg:#ffffff;--surface:#ffffff;--surface-alt:#f5f5f7;--text:#1d1d1f;--muted:#6e6e73;--border:#e5e5ea;--accent:#0a84ff;--ok:#34c759;--warn:#ffd60a;--err:#ff3b30
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:linear-gradient(180deg,var(--bg) 0%,#0f172a 100%);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
     .container{max-width:980px;margin:0 auto;padding:24px}
-    header{position:sticky;top:0;background:rgba(11,19,32,.85);backdrop-filter:saturate(140%) blur(6px);border-bottom:1px solid #1f2a44}
-    h1{font-size:18px;margin:0 0 4px}
-    .sub{color:#c7d7ff80;font-size:12px;margin:0}
-    section{background:var(--card);border:1px solid #23304d;border-radius:16px;padding:16px;margin-top:16px}
+    header{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border)}
+    h1{font-size:20px;margin:0 0 4px}
+    .sub{color:var(--muted);font-size:12px;margin:0}
+    section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:16px}
     .grid{display:grid;gap:12px}
     .cols-2{grid-template-columns:1fr 1fr}
     .cols-3{grid-template-columns:1fr 1fr 1fr}
     label{display:block;font-weight:600;margin-bottom:6px}
-    .help{margin-top:6px;color:#c7d7ff80;font-size:12px}
-    input,textarea,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #2a395c;background:#0e1526;color:#fff;font-size:14px}
-    input:focus,textarea:focus,select:focus{outline:2px solid #365da8;outline-offset:0}
+    .help{margin-top:6px;color:var(--muted);font-size:12px}
+    input,textarea,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #d2d2d7;background:#fff;color:var(--text);font-size:14px}
+    input:focus,textarea:focus,select:focus{outline:none;box-shadow:0 0 0 3px rgba(10,132,255,.25);border-color:var(--accent)}
     .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .btn{padding:10px 14px;border-radius:12px;border:1px solid #2a395c;background:#0b1320;color:#fff;cursor:pointer}
-    .btn:hover{border-color:#4b608f}
-    .btn.primary{background:#4169e1;border-color:#4169e1}
-    .btn.ok{background:var(--ok);border-color:var(--ok)}
-    .btn.warn{background:var(--warn);border-color:var(--warn);color:#000}
-    .btn.ghost{background:transparent}
-    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid #223156;background:#132038;border-radius:999px;padding:4px 10px;font-size:12px;color:#cfe0ff}
-    .err{color:#fecaca}
-    pre{background:#0a1120;border:1px solid #1f2a44;border-radius:12px;padding:12px;overflow:auto;max-height:420px}
-    .divider{height:1px;background:#1f2a44;margin:12px 0}
-    .card{border:1px solid #2a395c;border-radius:10px;padding:10px;background:#0e1526}
-    .link{color:#9ec1ff;text-decoration:none}
-    .link:hover{text-decoration:underline}
-    /* pour l'UI de Google si vous repassez à l'Autocomplete natif */
-    .pac-container{z-index:9999 !important}
+    .btn{padding:10px 14px;border-radius:12px;border:1px solid #d2d2d7;background:var(--surface-alt);color:var(--text);cursor:pointer}
+    .btn:hover{background:#ededf1}
+    .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+    .btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+    .btn.warn{background:var(--warn);border-color:var(--warn);color:#111}
+    .btn.ghost{background:#fff}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface-alt);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--text)}
+    .err{color:var(--err)}
+    pre{background:#0a0f1a;color:#e6eefc;border:1px solid #1f2a44;border-radius:12px;padding:12px;overflow:auto;max-height:420px}
+    .divider{height:1px;background:var(--border);margin:12px 0}
   </style>
 </head>
 <body>
   <header>
     <div class="container" style="padding:12px 24px;">
       <h1>Profil Magasin — saisie minimale</h1>
-      <p class="sub">Fournissez 5 informations clés. Le JSON généré suit le schéma « valeur + provenance » (axes → adresse_contexte, etc.).</p>
+      <p class="sub">Fournissez 5 informations clés. Le JSON généré suit le schéma « valeur + provenance » défini précédemment (axes → adresse_contexte, etc.).</p>
     </div>
   </header>
 
@@ -55,80 +50,53 @@
         <strong>Étape 1 — Saisies indispensables</strong>
         <span class="pill">Entrées : 5 champs</span>
       </div>
-
-      <!-- A) Recherche Google Places (CTA + fallback) -->
-      <div style="grid-column:1/-1">
-        <label for="placeQuery">Magasin (Recherche Google Places)</label>
-        <div class="row" style="gap:8px">
-          <input id="placeQuery" placeholder="Tapez le nom + ville (ex. : Super U Wormhout)" autocomplete="off" />
-          <button class="btn" id="btnPlacesSearch" type="button">Rechercher</button>
-          <button class="btn ghost" id="btnPlacesReset" type="button">Effacer</button>
-          <button class="btn ghost" id="btnPlacesPing" type="button" title="Vérifier le chargement de Google">Tester Google</button>
-        </div>
-        <div id="placesStatus" class="help">Cliquez « Rechercher » pour interroger Google Places. Résultats ci-dessous.</div>
-
-        <!-- Résultats : prédictions + sélection -->
-        <div id="placesResults" class="grid" style="margin-top:10px;gap:8px"></div>
-        <!-- Résumé du lieu sélectionné -->
-        <div id="placeSummary" class="card" style="display:none;margin-top:8px">
-          <div id="placeSummaryBody" class="help"></div>
-        </div>
-        <div class="divider"></div>
-      </div>
-
-      <!-- B) Vos 5 champs d’entrée (préremplis depuis Google si sélection) -->
       <div class="grid cols-2">
         <div>
-          <label for="enseigne">Nom de l’enseigne</label>
-          <input id="enseigne" placeholder="Ex : Intersport, E.Leclerc, Feu Vert" maxlength="100" />
-          <div class="help">Utilisé pour <code>enseigne</code> et pour les libellés.</div>
+          <label for="enseigneSelect">Nom de l’enseigne</label>
+          <select id="enseigneSelect"></select>
+          <div class="help">Liste alimentée depuis <code>/enseignes/*.json</code> du dépôt. La valeur utilisée est le « nom » présent dans chaque fichier JSON.</div>
         </div>
         <div>
           <label for="magasin">Nom du magasin</label>
-          <input id="magasin" placeholder="Ex : Super U Wormhout" maxlength="120" />
-          <div class="help">Renseigne <code>store_name</code>. Se préremplit lors de la sélection d’un lieu.</div>
+          <input id="magasin" placeholder="Ex : Intersport Bayonne – Ametzondo" maxlength="120" />
+          <div class="help">Renseigne l’attribut <code>store_name</code> (champ additionnel) et les titres des références.</div>
         </div>
-
         <div class="cols-2" style="grid-column:1/-1;display:grid;gap:12px;grid-template-columns:1fr 1fr">
           <div>
             <label for="adresse">Adresse postale du magasin</label>
-            <input id="adresse" placeholder="Numéro, voie, CP Ville — Ex : 12 rue du Stade, 59470 Wormhout" maxlength="200" />
-            <div class="help">Se préremplit avec <code>formatted_address</code> (Google).</div>
+            <input id="adresse" placeholder="Numéro, voie, CP Ville — Ex : 12 rue du Stade, 64100 Bayonne" maxlength="200" />
+            <div class="help">Mappe <code>axes.adresse_contexte.adresse_postale.value</code>.</div>
           </div>
           <div>
             <label for="url">Page web du magasin (site de l’enseigne)</label>
             <input id="url" placeholder="https://www.enseigne.fr/magasins/ville…" />
-            <div class="help">Si Google fournit <em>website</em>, il est injecté ici.</div>
+            <div class="help">Enregistrée sous <code>axes.adresse_contexte.references_ouvertes[0].url</code> avec <em>page_type</em> : <code>page_magasin_enseigne</code>.</div>
           </div>
         </div>
-
         <div style="grid-column:1/-1">
           <label for="coords">Coordonnées GPS — latitude, longitude (° décimaux)</label>
-          <input id="coords" placeholder="50.89, 2.46" />
-          <div class="help">Se préremplit via <code>geometry.location</code>. Format : <code>lat, lng</code>.</div>
+          <input id="coords" placeholder="48.11552771157894, -1.6767288891938714" />
+          <div class="help">Format recommandé : <code>lat, lng</code> (WGS84 décimal). Exemple : <code>48.11552771157894, -1.6767288891938714</code>. Sont aussi acceptés : « lat lng », « lat; lng », ou un collage depuis Google Maps.</div>
+        </div>
         </div>
       </div>
-
-      <!-- C) Webhook -->
-      <div style="grid-column:1/-1; margin-top:12px">
+      <div style="grid-column:1/-1">
         <label for="webhook">URL du webhook n8n (POST JSON)</label>
         <input id="webhook" placeholder="https://votre-n8n.tld/webhook/store-profile" value="https://n8n.wondermi.agency/webhook-test/397d1869-432d-4f3f-a9a4-f1c53ce9a4c2" />
-        <div class="help">Autorisez l’origine CORS pour <code>https://ruomaleb.github.io</code>. En prod, basculez vers <code>/webhook/</code>.</div>
+        <div class="help">Le domaine de cette page doit autoriser les requêtes depuis votre origine (CORS). Assurez-vous que le serveur n8n renvoie les en-têtes <code>Access-Control-Allow-Origin</code> et <code>Access-Control-Allow-Headers: content-type</code> pour <code>https://ruomaleb.github.io</code> (ou votre domaine).</div>
         <div class="row" style="margin-top:6px">
           <button class="btn" id="btn-gen-secret" type="button">Générer un secret</button>
-          <span class="help">Construit : <code>…/webhook/store-profile/&lt;secret&gt;</code>.</span>
+          <span class="help">Construit une URL du type <code>…/webhook/store-profile/&lt;secret&gt;</code>. En prod, remplacez <code>/webhook-test/</code> par <code>/webhook/</code> une fois votre workflow activé.</span>
         </div>
       </div>
-
-      <!-- D) Actions -->
       <div id="errors" class="help err" style="margin-top:8px;display:none"></div>
       <div class="row" style="margin-top:12px">
         <button class="btn primary" id="btn-gen">Valider & générer le JSON</button>
         <button class="btn" id="btn-copy" disabled>Copier</button>
         <button class="btn warn" id="btn-dl" disabled>Télécharger JSON</button>
         <button class="btn ok" id="btn-post" disabled>Envoyer au webhook n8n</button>
+        <span class="help">Le JSON inclut la <strong>provenance</strong> : <code>type</code>=<em>open_web</em>, <code>name</code>=« Site enseigne », <code>url</code>=page magasin, <code>collected_at</code>=ISO 8601.</span>
       </div>
-      <div class="help" style="margin-top:6px">Le JSON inclut la <strong>provenance</strong> : <code>type</code>=<em>open_web</em>, <code>name</code>=« Site enseigne », <code>url</code>=page magasin, <code>collected_at</code>=ISO 8601.</div>
     </section>
 
     <section>
@@ -142,226 +110,54 @@
       <div class="divider"></div>
       <ul style="margin:0 0 8px 16px;line-height:1.6">
         <li><code>enseigne</code> ⇐ Nom de l’enseigne</li>
-        <li><code>store_name</code> (champ additionnel) ⇐ Nom du magasin</li>
+        <li><code>store_name</code> (champ additionnel, autorisé) ⇐ Nom du magasin</li>
         <li><code>axes.adresse_contexte.adresse_postale.value</code> ⇐ Adresse postale</li>
         <li><code>axes.adresse_contexte.coordonnees.latitude.value</code> / <code>longitude.value</code> ⇐ Coordonnées GPS</li>
         <li><code>axes.adresse_contexte.references_ouvertes[]</code> ⇐ Page web (type : <code>page_magasin_enseigne</code>)</li>
       </ul>
-      <p class="help">Les autres attributs (AAV, type de zone, notoriété, services…) pourront être complétés plus tard.</p>
+      <p class="help">Les autres attributs (AAV, type de zone, notoriété, services, etc.) pourront être complétés ensuite via l’interface étendue ou des connecteurs/API.</p>
     </section>
   </main>
 
   <script>
     const $ = sel => document.querySelector(sel)
 
-    // ====== Google Places (CTA avec fallback) ======
-    let gReady = false;
-    let autocompleteService = null;
-    let placesService = null;
-    let sessionToken = null; // pour Autocomplete
-    let selectedPlace = null; // Place Details
+    // ----- Enseignes depuis le dépôt GitHub -----
+    const OWNER='ruomaleb', REPO='storeidentity', BRANCH='main';
+    const API = (p)=>`https://api.github.com/repos/${OWNER}/${REPO}/contents/${p}?ref=${BRANCH}`;
 
-    function setPlacesStatus(msg, type='info'){
-      const el = $('#placesStatus');
-      if(!el) return;
-      el.textContent = msg;
-      el.style.color = type==='ok' ? '#a7f3d0' : (type==='err' ? '#fecaca' : '#c7d7ff');
-      console.log('[Places]', msg);
-    }
-
-    function renderPredictions(preds){
-      const box = $('#placesResults');
-      box.innerHTML = '';
-      if(!preds || !preds.length){
-        box.innerHTML = '<div class="help">Aucun résultat. Essayez d’ajouter la ville (ex. « Super U Wormhout »).</div>';
-        return;
-      }
-      preds.slice(0,8).forEach(p=>{
-        const btn = document.createElement('button');
-        btn.className = 'btn';
-        btn.style.display = 'block';
-        btn.style.textAlign = 'left';
-        btn.style.width = '100%';
-        btn.innerHTML = `<strong>${p.structured_formatting?.main_text || p.description}</strong><br><span class="help">${p.structured_formatting?.secondary_text || ''}</span>`;
-        btn.addEventListener('click', ()=> loadPlaceDetails(p.place_id));
-        box.appendChild(btn);
-      });
-    }
-
-    function renderFallbackResults(results){
-      const box = $('#placesResults');
-      const mk = (r) => {
-        const btn = document.createElement('button');
-        btn.className = 'btn';
-        btn.style.display = 'block';
-        btn.style.textAlign = 'left';
-        btn.style.width = '100%';
-        btn.innerHTML = `<strong>${r.name || '—'}</strong><br><span class="help">${r.formatted_address || r.vicinity || ''}</span>`;
-        btn.addEventListener('click', ()=> loadPlaceDetails(r.place_id));
-        return btn;
-      };
-      if(!results || !results.length){
-        box.innerHTML = '<div class="help">Aucun résultat via fallback (FindPlace/TextSearch).</div>';
-        return;
-      }
-      box.innerHTML = '';
-      results.slice(0,8).forEach(r=> box.appendChild(mk(r)));
-    }
-
-    function renderPlaceSummary(place){
-      const wrap = $('#placeSummary');
-      const body = $('#placeSummaryBody');
-      if(!wrap || !body) return;
-      const lat = place.geometry?.location?.lat?.();
-      const lng = place.geometry?.location?.lng?.();
-      const maps = place.url || (lat!=null && lng!=null ? `https://www.google.com/maps?q=${lat},${lng}` : null);
-      const web  = place.website || null;
-      body.innerHTML = `
-        <div><strong>${place.name || '—'}</strong></div>
-        <div>${place.formatted_address || '—'}</div>
-        <div style="margin-top:6px">
-          ${web ? `Site : <a class="link" href="${web}" target="_blank" rel="noopener">ouvrir</a> &nbsp;` : ``}
-          ${maps ? `Maps : <a class="link" href="${maps}" target="_blank" rel="noopener">ouvrir</a>` : ``}
-        </div>
-        <div class="help" style="margin-top:6px">place_id : <code>${place.place_id}</code></div>
-      `;
-      wrap.style.display = 'block';
-    }
-
-    function fillFormFromPlace(place){
-      const $magasin = $('#magasin');
-      const $adresse = $('#adresse');
-      const $coords  = $('#coords');
-      const $url     = $('#url');
-      if($magasin && place?.name) $magasin.value = place.name;
-      if($adresse && place?.formatted_address) $adresse.value = place.formatted_address;
-      const lat = place?.geometry?.location?.lat?.();
-      const lng = place?.geometry?.location?.lng?.();
-      if($coords && lat!=null && lng!=null) $coords.value = `${lat}, ${lng}`;
-      if($url && place?.website) $url.value = place.website;
-    }
-
-    function loadPlaceDetails(placeId){
-      if(!gReady || !placesService){ setPlacesStatus('Google Places non prêt.', 'err'); return; }
-      setPlacesStatus('Récupération des détails…');
-      const fields = [
-        'place_id','name','formatted_address','geometry.location','url','website',
-        'types','international_phone_number','opening_hours.weekday_text'
-      ];
-      placesService.getDetails({ placeId, fields }, (place, status) => {
-        console.log('[getDetails] status=', status, place);
-        if(status !== google.maps.places.PlacesServiceStatus.OK || !place){
-          setPlacesStatus('Impossible de récupérer les détails du lieu.', 'err'); return;
-        }
-        selectedPlace = place;
-        fillFormFromPlace(place);
-        renderPlaceSummary(place);
-        setPlacesStatus('Lieu sélectionné ✔︎ (champs préremplis).', 'ok');
-        // nouvelle session token pour prochaines prédictions
-        try{ sessionToken = new google.maps.places.AutocompleteSessionToken(); }catch(_){}
-      });
-    }
-
-    function searchPlaces(){
-      const q = ($('#placeQuery')?.value || '').trim();
-      if(!q){ setPlacesStatus('Saisissez une requête (ex. « Super U Wormhout »).', 'err'); return; }
-      if(!gReady || !autocompleteService){ setPlacesStatus('Google Places non prêt.', 'err'); return; }
-      setPlacesStatus('Recherche en cours (Autocomplete)…');
-
-      // (ré)initialiser le token de session pour cette recherche
-      try{ sessionToken = new google.maps.places.AutocompleteSessionToken(); }catch(_){}
-      const req = {
-        input: q,
-        componentRestrictions: { country: 'fr' },
-        types: ['establishment'],
-        sessionToken
-      };
-
-      autocompleteService.getPlacePredictions(req, (preds, status) => {
-        console.log('[Autocomplete] status=', status, preds);
-        if(status === google.maps.places.PlacesServiceStatus.OK && preds?.length){
-          setPlacesStatus('Résultats prêts — choisissez un lieu.', 'ok');
-          renderPredictions(preds);
-          return;
-        }
-
-        // Fallback 1 : FindPlaceFromQuery
-        setPlacesStatus('Aucun résultat Autocomplete, tentative FindPlaceFromQuery…');
-        const fReq = {
-          query: q,
-          fields: ['place_id','name','formatted_address','geometry','url','website']
-        };
-        placesService.findPlaceFromQuery(fReq, (res, st) => {
-          console.log('[FindPlaceFromQuery] status=', st, res);
-          if(st === google.maps.places.PlacesServiceStatus.OK && res?.length){
-            setPlacesStatus('Résultats via FindPlaceFromQuery — choisissez un lieu.', 'ok');
-            renderFallbackResults(res);
-            return;
-          }
-
-          // Fallback 2 : TextSearch
-          setPlacesStatus('Tentative TextSearch…');
-          const tReq = { query: q, region: 'fr' };
-          placesService.textSearch(tReq, (tRes, tSt) => {
-            console.log('[TextSearch] status=', tSt, tRes);
-            if(tSt === google.maps.places.PlacesServiceStatus.OK && tRes?.length){
-              setPlacesStatus('Résultats via TextSearch — choisissez un lieu.', 'ok');
-              renderFallbackResults(tRes);
-              return;
-            }
-
-            // Échecs : afficher le code utile au diagnostic
-            setPlacesStatus(`Aucun résultat (status: ${status}/${st}/${tSt}). Vérifier : Places API activée, quotas, restrictions de clé.`, 'err');
-            renderPredictions([]);
-          });
-        });
-      });
-    }
-
-    function resetPlaces(){
-      $('#placeQuery').value = '';
-      $('#placesResults').innerHTML = '';
-      $('#placeSummary').style.display = 'none';
-      selectedPlace = null;
-      setPlacesStatus('Cliquez « Rechercher » pour interroger Google Places.');
-      try{ sessionToken = new google.maps.places.AutocompleteSessionToken(); }catch(_){}
-    }
-
-    // Appelé par le <script> Google (callback)
-    function onGoogleReady(){
+    async function loadEnseignes(){
+      const sel = document.getElementById('enseigneSelect');
+      if(!sel) return;
       try{
-        gReady = true;
-        autocompleteService = new google.maps.places.AutocompleteService();
-        placesService = new google.maps.places.PlacesService(document.createElement('div'));
-        sessionToken = new google.maps.places.AutocompleteSessionToken();
-        setPlacesStatus('Google Places chargé. Lancez une recherche.', 'ok');
-        console.log('[Google] Places ready');
+        const r = await fetch(API('enseignes'));
+        if(!r.ok) throw new Error('GitHub API '+r.status);
+        const items = await r.json();
+        const jsons = items.filter(it=>/\\.json$/i.test(it.name));
+        const out = [];
+        for(const it of jsons){
+          try{
+            const jr = await fetch(it.download_url);
+            if(!jr.ok) continue;
+            const j = await jr.json();
+            const slug = j.slug || it.name.replace(/\\.json$/,'');
+            const nom  = j.nom  || slug;
+            out.push({slug, nom});
+          }catch(e){}
+        }
+        out.sort((a,b)=>a.nom.localeCompare(b.nom,'fr',{sensitivity:'base'}));
+        sel.innerHTML = '<option value=\"\">— choisir —</option>' + out.map(e=>`<option value=\"${e.slug}\">${e.nom}</option>`).join('');
       }catch(e){
-        gReady = false;
-        console.error(e);
-        setPlacesStatus('Échec du chargement de Google Places.', 'err');
+        // Fallback minimal si l’API GitHub est limitée
+        sel.innerHTML = '<option value=\"\">— choisir —</option><option value=\"Super U\">Super U</option><option value=\"Intersport\">Intersport</option><option value=\"E.Leclerc\">E.Leclerc</option>';
       }
     }
-    window.onGoogleReady = onGoogleReady;
 
-    // Boutons
-    document.addEventListener('DOMContentLoaded', ()=>{
-      $('#btnPlacesSearch')?.addEventListener('click', searchPlaces);
-      $('#btnPlacesReset')?.addEventListener('click', resetPlaces);
-      $('#btnPlacesPing')?.addEventListener('click', ()=>{
-        if(window.google?.maps?.places){
-          alert('Google Places est chargé.');
-        } else {
-          alert('Google Places NON chargé. Vérifiez la clé/API/quotas.');
-        }
-      });
-    });
-    // ====== /Google Places ======
+    // Mémoire du dernier JSON généré
+    let lastPayloadStr = null; // JSON sérialisé
+    let lastPayloadObj = null; // Objet JSON
 
-    // ====== JSON / Webhook (inchangé) ======
-    let lastPayloadStr = null;
-    let lastPayloadObj = null;
-
+    // Générateur simple de UUID v4 (pour store_id)
     function uuidv4(){
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
         const r = Math.random()*16|0, v = c === 'x' ? r : (r & 0x3 | 0x8)
@@ -387,13 +183,14 @@
       if(!base){
         base = prompt('Base du webhook n8n (ex: https://n8n.wondermi.agency/webhook/store-profile)', 'https://n8n.wondermi.agency/webhook/store-profile') || ''
       }
-      base = base.trim().replace(/\/+$/,'')
+      base = base.trim().replace(/\\/+$/,'')
       const secret = randomHex(32)
       const url = base + '/' + secret
       input.value = url
       try { localStorage.setItem('webhook_url', url) } catch(e){}
     }
 
+    // Préremplissage initial + binding du bouton secret + chargement des enseignes
     ;(function(){
       const i = $('#webhook')
       if(i){
@@ -404,10 +201,13 @@
         const b = document.querySelector('#btn-gen-secret')
         if(b) b.addEventListener('click', generateWebhookSecret)
       }
+      // charge la liste d’enseignes
+      loadEnseignes();
     })()
 
     function validateInputs(){
-      const enseigne = $('#enseigne').value.trim()
+      const selEnseigne = $('#enseigneSelect');
+      const enseigne = (selEnseigne && selEnseigne.options[selEnseigne.selectedIndex]?.text || '').trim();
       const magasin  = $('#magasin').value.trim()
       const adresse  = $('#adresse').value.trim()
       const url      = $('#url').value.trim()
@@ -421,6 +221,7 @@
       const urlOk = (url.startsWith('http://') || url.startsWith('https://'))
       if(!url || !urlOk) errs.push('• URL de la page magasin invalide (doit commencer par http/https)')
 
+      // Parsing des coordonnées "lat, lng" (ou variantes)
       let latNum, lngNum
       if(!coordsRaw){
         errs.push('• Coordonnées GPS requises (format : lat, lng)')
@@ -433,7 +234,7 @@
         }
         const parts = trySplit(coordsRaw)
         if(!parts){
-          errs.push('• Coordonnées GPS invalides. Exemple : 50.891, 2.462')
+          errs.push('• Coordonnées GPS invalides. Exemple attendu : 48.11552771157894, -1.6767288891938714')
         } else {
           latNum = parseFloat((parts[0]||'').replace(',', '.'))
           lngNum = parseFloat((parts[1]||'').replace(',', '.'))
@@ -455,7 +256,7 @@
       return {
         store_id: uuidv4(),
         enseigne: vals.enseigne,
-        store_name: vals.magasin,
+        store_name: vals.magasin, // champ additionnel
         last_updated: now,
         goal: 'hybride',
         axes: {
@@ -489,6 +290,7 @@
       URL.revokeObjectURL(a.href)
     }
 
+    // Envoi du JSON au webhook n8n
     async function postToWebhook(){
       const webhook = ($('#webhook')?.value || '').trim()
       if(!/^https?:\/\//i.test(webhook)){
@@ -496,6 +298,7 @@
         return
       }
 
+      // 1) Préparer le payload (JSON string)
       let payloadStr = lastPayloadStr
       if(!payloadStr){
         const res = validateInputs()
@@ -506,6 +309,7 @@
         lastPayloadStr = payloadStr
       }
 
+      // 2) Tentative standard (CORS) en application/json
       try{
         try{ localStorage.setItem('webhook_url', webhook); } catch(e){}
         const resp = await fetch(webhook, {
@@ -520,17 +324,20 @@
           alert('Webhook envoyé ✅')
           return
         } else {
+          // Si le serveur ne renvoie pas CORS/200, on tente le fallback Beacon
           console.warn('CORS/HTTP non OK, fallback Beacon :', resp.status, txt)
         }
       }catch(err){
+        // TypeError: Failed to fetch (préflight/CORS/TLS). On tente le fallback Beacon.
         console.warn('fetch JSON échoué, fallback Beacon :', err)
       }
 
+      // 3) Fallback sans préflight : navigator.sendBeacon (text/plain)
       try{
         const blob = new Blob([payloadStr], { type: 'text/plain;charset=UTF-8' })
         const sent = navigator.sendBeacon(webhook, blob)
         if(sent){
-          alert('Webhook envoyé (Beacon). Réponse non lisible côté navigateur, vérifiez n8n → Executions.')
+          alert('Webhook envoyé en mode compatible (Beacon). Réponse non lisible côté navigateur, vérifiez n8n → Executions.')
         } else {
           alert("Échec d'envoi (Beacon)")
         }
@@ -561,12 +368,9 @@
       $('#preview').textContent = pretty
       $('#btn-copy').disabled = false
       $('#btn-dl').disabled = false
-      $('#btn-dl').onclick = () => download(`store_profile_${res.values.enseigne.replace(/\s+/g,'_')}.json`, pretty)
+      $('#btn-dl').onclick = () => download(`store_profile_${res.values.enseigne.replace(/\\s+/g,'_')}.json`, pretty)
       $('#btn-copy').onclick = async () => { try{ await navigator.clipboard.writeText(pretty); alert('JSON copié dans le presse-papiers') } catch(e){ alert('Copie impossible : permissions navigateur') } }
     })
   </script>
-
-  <!-- Google Maps JavaScript API + Places -->
-  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCy5VImTf6SPltnHqVetqh5GPCp-o_JmFo&libraries=places&language=fr&region=FR&callback=onGoogleReady"></script>
 </body>
 </html>
